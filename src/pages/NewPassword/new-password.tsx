@@ -11,7 +11,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 // Critérios de validação
 const loginSchema = z.object({
-    email: z.string().email("O e-mail é inválido"),
     password: z.string()
         .min(6, "A senha deve ter pelo menos 6 caracteres")
         .regex(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula")
@@ -21,19 +20,18 @@ const loginSchema = z.object({
 
 type FormLogin = z.infer<typeof loginSchema>;
 
-const Login = () => {
+const NewPassword = () => {
     const form = useForm<FormLogin>({ 
         resolver: zodResolver(loginSchema),
         defaultValues: {
-            email: '',
             password: ''
         }
     });
     
     const navigate = useNavigate(); 
 
-    const handleClickRecover = () => {
-        navigate('/recover-account');
+    const handleClickRetornLogin = () => {
+        navigate('/login');
     };   
 
     return (
@@ -47,40 +45,34 @@ const Login = () => {
                         <form onSubmit={form.handleSubmit(data => console.log(data))} className="space-y-4">
                             <FormField
                                 control={form.control}
-                                name="email"
+                                name="password"
                                 render={({ field, fieldState }) => (
                                     <FormItem>
-                                        <FormLabel>E-mail</FormLabel>
+                                        <FormLabel>Nova Palavra-Chave</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Digite seu e-mail de utilizador" {...field} />
+                                            <Input type="password" placeholder="Digite sua nova palavra-chave" {...field} />
                                         </FormControl>
                                         {fieldState.error && <p className="text-red-500">{fieldState.error.message}</p>}
                                     </FormItem>
                                 )}
                             />
+
                             <FormField
                                 control={form.control}
                                 name="password"
                                 render={({ field, fieldState }) => (
                                     <FormItem>
-                                        <FormLabel>Palavra-Chave</FormLabel>
+                                        <FormLabel>Confirmar nova Palavra-Chave</FormLabel>
                                         <FormControl>
-                                            <Input type="password" placeholder="Digite sua palavra-chave" {...field} />
+                                            <Input type="password" placeholder="Digite novamente sua palavra-chave" {...field} />
                                         </FormControl>
                                         {fieldState.error && <p className="text-red-500">{fieldState.error.message}</p>}
                                     </FormItem>
                                 )}
                             />
-                            <div className="flex justify-center">
-                                <Button type="submit">Entrar</Button>
-                            </div>
-                            <div className="mt-4 text-start">
-                                <span 
-                                    className="text-gray-600 underline hover:text-black cursor-pointer" 
-                                    onClick={handleClickRecover}
-                                >
-                                    Esqueceu a senha?
-                                </span>
+                            <div className="flex justify-center flex-wrap">
+                                <Button className="m-5" type="submit">Confirmar palavra-chave</Button>
+                                <Button className="m-5" variant={"secondary"} type="submit" onClick={handleClickRetornLogin}>Cancelar</Button>
                             </div>
                         </form>
                     </Form>
@@ -90,4 +82,4 @@ const Login = () => {
     )
 };
 
-export default Login;
+export default NewPassword;
