@@ -35,6 +35,11 @@ const Login = () => {
         navigate('/recover-account');
     };   
 
+    const handleSubmit = (data: FormLogin) => {
+        console.log(data); 
+        navigate('/home-screen');
+    };
+
     return (
         <div className="flex justify-center items-center h-screen">
             <Card className="w-1/3 min-w-80 rounded-xl border bg-card text-card-foreground shadow py-12 ">
@@ -43,7 +48,7 @@ const Login = () => {
                 </CardContent>
                 <CardContent className="p-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(data => console.log(data))} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="email"
@@ -71,7 +76,10 @@ const Login = () => {
                                 )}
                             />
                             <div className="flex justify-center">
-                                <Button type="submit">Entrar</Button>
+                                {/* Botão com onClick no handleSubmit */}
+                                <Button type="submit" onClick={form.handleSubmit(handleSubmit)}>
+                                    Entrar
+                                </Button>
                             </div>
                             <div className="mt-4 text-start">
                                 <span 
@@ -86,7 +94,7 @@ const Login = () => {
                 </CardContent>
             </Card> 
         </div>
-    )
+    );
 };
 
 export default Login;
