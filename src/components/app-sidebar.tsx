@@ -35,7 +35,6 @@ const data = {
   ],
 }
 
-// Componente Calendars com checkboxes clicáveis e seções minimizáveis
 function Calendars({ calendars }: { calendars: typeof data.calendars }) {
   const [selectedItems, setSelectedItems] = React.useState<Record<string, boolean>>({})
   const [collapsedSections, setCollapsedSections] = React.useState<Record<string, boolean>>({})
@@ -43,14 +42,14 @@ function Calendars({ calendars }: { calendars: typeof data.calendars }) {
   const handleCheckboxChange = (item: string) => {
     setSelectedItems((prev) => ({
       ...prev,
-      [item]: !prev[item], // Alterna a seleção do item atual
+      [item]: !prev[item],
     }))
   }
 
   const toggleSection = (sectionName: string) => {
     setCollapsedSections((prev) => ({
       ...prev,
-      [sectionName]: !prev[sectionName], // Alterna a visibilidade da seção
+      [sectionName]: !prev[sectionName],
     }))
   }
 

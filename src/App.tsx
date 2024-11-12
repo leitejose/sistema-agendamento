@@ -3,6 +3,7 @@ import Login from './pages/Login/login';
 import RecoverAccount from './pages/RecoverAccount/recover-account';
 import NewPassword from './pages/NewPassword/new-password';
 import HomeScreen from './pages/HomeScreen/home-screen';
+import UtentesScreen from  './pages/UtentesScreen/utentes-screen';
 
 const App = () => {
   return (
@@ -13,6 +14,7 @@ const App = () => {
         <Route path="/recover-account" element={<RecoverAccount />} />
         <Route path="/new-password" element={<NewPassword />} />
         <Route path="/home-screen"  element={<HomeScreen/>} />
+        <Route path="/utentes-screen"   element={<UtentesScreen/>} />
       </Routes>
     </Router>
   );
