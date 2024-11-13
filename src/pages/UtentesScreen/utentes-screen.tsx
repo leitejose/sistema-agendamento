@@ -12,12 +12,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu"
+import { MenuComponent } from "@/components/nav-user"
 
 export default function Page() {
   // Estado para o item ativo
@@ -47,29 +42,11 @@ export default function Page() {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-
-          {/* Menu de navegação centralizado */}
           <div className="flex w-full justify-center">
-            <NavigationMenu>
-              <NavigationMenuList className="flex space-x-4 p-2 rounded-sm">
-                {navigationItems.map((item) => (
-                  <NavigationMenuItem key={item.name}>
-                    <NavigationMenuLink
-                      href={item.path}
-                      onClick={() => setActiveItem(item.name)} // Atualiza o item ativo ao clicar
-                      className={`p-2 rounded-sm transition-colors duration-200 ${
-                        activeItem === item.name
-                          ? "bg-black text-white" // Estilo ativo para o item selecionado
-                          : "text-black hover:bg-black hover:text-white"
-                      }`}
-                    >
-                      {item.name}
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                ))}
-              </NavigationMenuList>
-            </NavigationMenu>
+            <MenuComponent/>
           </div>
+
+          
         </header>
 
         

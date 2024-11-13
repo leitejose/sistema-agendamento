@@ -2,7 +2,7 @@ import * as React from "react"
 import { Plus, ChevronDown, ChevronRight } from "lucide-react"
 
 import { DatePicker } from "@/components/date-picker"
-import { NavUser } from "@/components/nav-user"
+import { NavUser } from "@/components/nav-user-dropdown"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Sidebar,

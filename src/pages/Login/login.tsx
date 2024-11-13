@@ -76,7 +76,6 @@ const Login = () => {
                                 )}
                             />
                             <div className="flex justify-center">
-                                {/* Botão com onClick no handleSubmit */}
                                 <Button type="submit" onClick={form.handleSubmit(handleSubmit)}>
                                     Entrar
                                 </Button>

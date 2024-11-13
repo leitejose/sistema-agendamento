@@ -11,12 +11,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu"
+import { MenuComponent } from "@/components/nav-user"
 
 export default function Page() {
   return (
@@ -34,40 +29,7 @@ export default function Page() {
             </BreadcrumbList>
           </Breadcrumb>
           <div className="flex w-full justify-center">
-            <NavigationMenu>
-              <NavigationMenuList className="flex space-x-4 p-2 rounded-sm">
-                <NavigationMenuItem>
-                  <NavigationMenuLink href="/home-screen" className="text-black-600 hover: underline">
-                    Home
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink href="/utentes-screen" className="text-black-600 hover:underline">
-                    Utentes
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink href="/services" className="text-black-600 hover:underline">
-                    Colaboradores
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink href="/contact" className="text-black-600 hover:underline">
-                    Serviços
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink href="/contact" className="text-black-600 hover:underline">
-                    Estatistica
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <NavigationMenuLink href="/contact" className="text-black-600 hover:underline">
-                    Definições
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
+            <MenuComponent/>
           </div>
         </header>
 
