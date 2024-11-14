@@ -4,6 +4,7 @@ import { Plus, ChevronDown, ChevronRight } from "lucide-react"
 import { DatePicker } from "@/components/date-picker"
 import { NavUser } from "@/components/nav-user-dropdown"
 import { Checkbox } from "@/components/ui/checkbox"
+import CreateUtentesDialog from "@/pages/UtentesScreen/create-utente-dialog"
 import {
   Sidebar,
   SidebarContent,
@@ -99,10 +100,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton >
-              <Plus />
-              <a href="">Nova Marcação</a>
-            </SidebarMenuButton>
+          <CreateUtentesDialog>
+              <SidebarMenuButton>
+                <Plus />
+                Novo Utente
+              </SidebarMenuButton>
+            </CreateUtentesDialog>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

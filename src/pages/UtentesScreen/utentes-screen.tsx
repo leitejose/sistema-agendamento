@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/pages/UtentesScreen/app-sidebar-utente-screen"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,19 +15,6 @@ import {
 import { MenuComponent } from "@/components/nav-user"
 
 export default function Page() {
-  // Estado para o item ativo
-  const [activeItem, setActiveItem] = useState("Calendário")
-
-  // Lista de itens de navegação
-  const navigationItems = [
-    { name: "Calendário", path: "/home-screen" },
-    { name: "Utentes", path: "/utentes-screen" },
-    { name: "Colaboradores", path: "/services" },
-    { name: "Serviços", path: "/contact" },
-    { name: "Estatística", path: "/statistics" },
-    { name: "Definições", path: "/settings" },
-  ]
-
   return (
     <SidebarProvider>
       <AppSidebar />

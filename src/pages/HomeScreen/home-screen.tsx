@@ -32,9 +32,6 @@ export default function Page() {
             <MenuComponent/>
           </div>
         </header>
-
-        
-       
       </SidebarInset>
     </SidebarProvider>
   )
