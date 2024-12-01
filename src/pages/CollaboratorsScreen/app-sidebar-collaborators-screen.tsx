@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Plus } from "lucide-react"
 import { NavUser } from "@/components/nav-user-dropdown"
-import CreateUtentesDialog from "@/pages/UtentesScreen/create-utente-dialog"
+import CreateUtentesDialog from "@/pages/CollaboratorsScreen/create-collaborators-dialog"
 import {
   Sidebar,
   SidebarContent,
@@ -18,8 +18,8 @@ import { Button } from "@/components/ui/button"
 // Dados de exemplo
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
+    name: "Carlos Sousa",
+    email: "carlos@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
 }
@@ -44,7 +44,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <CreateUtentesDialog>
               <SidebarMenuButton>
                 <Plus />
-                Novo Utente
+                Novo Colaborador
               </SidebarMenuButton>
             </CreateUtentesDialog>
           </SidebarMenuItem>

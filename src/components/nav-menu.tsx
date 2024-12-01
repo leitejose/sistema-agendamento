@@ -29,7 +29,7 @@ export function MenuComponent() {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink
-              href="/services"
+              href="/collaborators-screen"
               className="text-black hover:underline"
             >
               Colaboradores

@@ -11,7 +11,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { MenuComponent } from "@/components/nav-user"
+import { MenuComponent } from "@/components/nav-menu"
 
 export default function Page() {
   return (
