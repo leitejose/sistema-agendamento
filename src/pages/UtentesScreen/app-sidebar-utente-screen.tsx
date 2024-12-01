@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { SearchForm } from "@/components/search-form"
+import { SearchForm } from "@/pages/CollaboratorsScreen/collaborators-search-form"
 import { Button } from "@/components/ui/button"
 
 // Dados de exemplo

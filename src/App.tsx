@@ -5,6 +5,7 @@ import NewPassword from './pages/NewPassword/new-password';
 import HomeScreen from './pages/HomeScreen/home-screen';
 import UtentesScreen from  './pages/UtentesScreen/utentes-screen';
 import CollaboratorsScreen from './pages/CollaboratorsScreen/collaborators-screen'
+import ServicesScreen from './pages/ServicesScreen/services-screen';
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
         <Route path="/home-screen"  element={<HomeScreen/>} />
         <Route path="/utentes-screen"   element={<UtentesScreen/>} />
         <Route path='/collaborators-screen' element={<CollaboratorsScreen />} />
+        <Route path="/services-screen" element={<ServicesScreen />} />
       </Routes>
     </Router>
   );

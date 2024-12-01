@@ -37,7 +37,7 @@ export function MenuComponent() {
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuLink
-              href="/contact"
+              href="/services-screen"
               className="text-black hover:underline"
             >
               Serviços
