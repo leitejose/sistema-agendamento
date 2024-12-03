@@ -14,7 +14,7 @@ export function MenuComponent() {
           <NavigationMenuItem>
             <NavigationMenuLink
               href="/home-screen"
-              className="text-black hover:underline"
+              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
             >
               Home
             </NavigationMenuLink>
@@ -22,7 +22,7 @@ export function MenuComponent() {
           <NavigationMenuItem>
             <NavigationMenuLink
               href="/utentes-screen"
-              className="text-black hover:underline"
+              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
             >
               Utentes
             </NavigationMenuLink>
@@ -30,7 +30,7 @@ export function MenuComponent() {
           <NavigationMenuItem>
             <NavigationMenuLink
               href="/collaborators-screen"
-              className="text-black hover:underline"
+              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
             >
               Colaboradores
             </NavigationMenuLink>
@@ -38,7 +38,7 @@ export function MenuComponent() {
           <NavigationMenuItem>
             <NavigationMenuLink
               href="/services-screen"
-              className="text-black hover:underline"
+              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
             >
               Serviços
             </NavigationMenuLink>
@@ -46,7 +46,7 @@ export function MenuComponent() {
           <NavigationMenuItem>
             <NavigationMenuLink
               href="/contact"
-              className="text-black hover:underline"
+              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
             >
               Estatistica
             </NavigationMenuLink>
@@ -54,7 +54,7 @@ export function MenuComponent() {
           <NavigationMenuItem>
             <NavigationMenuLink
               href="/contact"
-              className="text-black hover:underline"
+              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
             >
               Definições
             </NavigationMenuLink>

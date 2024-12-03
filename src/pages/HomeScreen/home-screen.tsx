@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/pages/HomeScreen/app-sidebar"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,6 +12,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { MenuComponent } from "@/components/nav-menu"
+import  FullCalendarComponent  from "@/components/full-calendar-component"
 
 export default function Page() {
   return (
@@ -32,6 +33,9 @@ export default function Page() {
             <MenuComponent/>
           </div>
         </header>
+        <div>
+          <FullCalendarComponent/>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )
