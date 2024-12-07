@@ -3,7 +3,7 @@ import Login from './pages/Login/login';
 import RecoverAccount from './pages/RecoverAccount/recover-account';
 import NewPassword from './pages/NewPassword/new-password';
 import HomeScreen from './pages/HomeScreen/home-screen';
-import UtentesScreen from  './pages/UtentesScreen/utentes-screen';
+import UtentesScreen from  './pages/UtentesScreen/index';
 import CollaboratorsScreen from './pages/CollaboratorsScreen/collaborators-screen'
 import ServicesScreen from './pages/ServicesScreen/services-screen';
 
