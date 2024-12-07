@@ -86,7 +86,7 @@ function Calendars({ calendars }: { calendars: typeof data.calendars }) {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [appointments, setAppointments] = React.useState<any[]>([]);
+  const [, setAppointments] = React.useState<any[]>([]);
 
   const handleSaveAppointment = (newAppointment: any) => {
     setAppointments((prev) => [...prev, newAppointment]); // Adiciona o novo agendamento à lista
