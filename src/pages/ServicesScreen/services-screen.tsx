@@ -160,21 +160,19 @@ export default function Page() {
               <Button
                 onClick={() => {
                   if (currentService?.id) {
-                    // Atualiza o serviço existente
                     setData((prevData) =>
                       prevData.map((item) =>
                         item.id === currentService.id ? { ...currentService } : item
                       )
                     );
                   } else {
-                    // Adiciona um novo serviço
                     setData((prevData) => [
                       ...prevData,
                       { ...currentService, id: prevData.length + 1 },
                     ]);
                   }
-                  setIsSheetOpen(false); // Fecha a sheet após salvar
-                  setCurrentService(null); // Limpa o estado de serviço
+                  setIsSheetOpen(false);
+                  setCurrentService(null); 
                 }}
               >
                 {currentService ? "Salvar alterações" : "Criar Serviço"}

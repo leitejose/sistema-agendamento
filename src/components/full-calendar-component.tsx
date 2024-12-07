@@ -1,13 +1,11 @@
-// FullCalendarComponent.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import ptLocale from "@fullcalendar/core/locales/pt"
 
 const FullCalendarComponent = () => {
-  const [events, setEvents] = useState([
+  const [events] = useState([
     { title: "Evento 1", start: new Date(), id: "1" },
     { title: "Evento 2", start: "2024-12-10", id: "2" },
   ]);

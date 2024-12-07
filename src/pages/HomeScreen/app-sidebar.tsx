@@ -15,9 +15,8 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import NewAppointmentScreen from "@/pages/HomeScreen/create-new-appointment"; // Importa o componente de nova marcação
+import NewAppointmentScreen from "@/pages/HomeScreen/create-new-appointment";
 
-// Dados de exemplo
 const data = {
   user: {
     name: "shadcn",
