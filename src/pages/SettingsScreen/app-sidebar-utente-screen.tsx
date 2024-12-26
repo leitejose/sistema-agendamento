@@ -1,19 +1,17 @@
 import * as React from "react"
-import { Plus } from "lucide-react"
+import { Key, TicketsPlane, User } from "lucide-react"
 import { NavUser } from "@/components/nav-user-dropdown"
 import CreateUtentesDialog from "@/pages/UtentesScreen/create-utente-dialog"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { SearchForm } from "@/pages/CollaboratorsScreen/collaborators-search-form"
-import { Button } from "@/components/ui/button"
+
 
 const data = {
   user: {
@@ -30,25 +28,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavUser user={data.user} />
       </SidebarHeader>
       <SidebarContent>
-      <SearchForm className="pt-4"/>
-      <div className="flex justify-center direction-row">
-        <div className="p-1"><Button>Exportar PDF</Button></div>
-        <div className="p-1"><Button>Imprimir</Button></div>
-      </div>
-      
-      </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
+      <SidebarMenu className="pt-5">
           <SidebarMenuItem>
           <CreateUtentesDialog>
               <SidebarMenuButton>
-                <Plus />
-                Novo Utente
+                <TicketsPlane/>
+                Férias
+              </SidebarMenuButton>
+            </CreateUtentesDialog>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+          <CreateUtentesDialog>
+              <SidebarMenuButton>
+                <User/>
+                Funções
+              </SidebarMenuButton>
+            </CreateUtentesDialog>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+          <CreateUtentesDialog>
+              <SidebarMenuButton>
+                <Key/>
+                Permissões
               </SidebarMenuButton>
             </CreateUtentesDialog>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
+      
+      </SidebarContent>
       <SidebarRail />
     </Sidebar>
   )
