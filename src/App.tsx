@@ -7,7 +7,9 @@ import UtentesScreen from  './pages/UtentesScreen/utentes-screen';
 import CollaboratorsScreen from './pages/CollaboratorsScreen/collaborators-screen'
 import ServicesScreen from './pages/ServicesScreen/services-screen';
 import StatisticsScreen from './pages/StatisticsScreen/statistics-screen';
-import SettingsScreen from './pages/SettingsScreen/settings-screen';
+import VacanceScreen from './pages/SettingsPages/VacanceScreen/vacance-screen';
+import RoleScreen from './pages/SettingsPages/RoleScreen/role-screen';
+import PermissionScreen from './pages/SettingsPages/PermissionScreen/permission-screen';
 
 
 const App = () => {
@@ -23,7 +25,9 @@ const App = () => {
         <Route path='/collaborators-screen' element={<CollaboratorsScreen />} />
         <Route path="/services-screen" element={<ServicesScreen />} />
         <Route path="/statistics-screen" element={<StatisticsScreen/>} />
-        <Route path="/settings-screen" element={<SettingsScreen />} />
+        <Route path="/vacance-screen" element={<VacanceScreen />} />
+        <Route path="/role-screen" element={<RoleScreen />} />
+        <Route path="/permission-screen" element={<PermissionScreen />} />
       </Routes>
     </Router>
   );
