@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Edit, Trash2 } from "lucide-react";
 
 export default function Page() {
+
   const [data, setData] = useState([
     { id: 1, nome: "Dr. João Silva", cargo: "Médico", especialidade: "Pediatria" },
     { id: 2, nome: "Dra. Maria Oliveira", cargo: "Médico", especialidade: "Ginecologia" },

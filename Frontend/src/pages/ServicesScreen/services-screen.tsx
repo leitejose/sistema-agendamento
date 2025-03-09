@@ -1,5 +1,8 @@
 "use client";
 
+import { useQuery, useMutation } from '@apollo/client';
+import { GET_SERVICOS, DELETE_SERVICO, UPDATE_SERVICO } from '@/graphql/queries';
+import { GetServicosData } from '@/graphql/types';
 import { AppSidebar } from "@/pages/ServicesScreen/app-sidebar-services-screen";
 import {
   SidebarInset,
@@ -7,7 +10,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Header } from "@/components/header";
 import { DataTable } from "@/components/data-table";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,17 +27,41 @@ import {
 } from "@/components/ui/sheet";
 
 export default function Page() {
-  const [data, setData] = useState([
-    { id: 1, nome: "Consulta Inicial", valor: "50€", duracao: "30 minutos" },
-    { id: 2, nome: "Ultrassonografia", valor: "75€", duracao: "45 minutos" },
-    { id: 3, nome: "Exame Preventivo (Papanicolau)", valor: "30€", duracao: "20 minutos" },
-    { id: 4, nome: "Consulta de Retorno", valor: "40€", duracao: "20 minutos" },
-    { id: 5, nome: "Colposcopia", valor: "90€", duracao: "50 minutos" },
-    { id: 6, nome: "Inserção de DIU", valor: "120€", duracao: "60 minutos" },
-  ]);
-
+  const { loading, error, data } = useQuery<GetServicosData>(GET_SERVICOS);
+  const [dataList, setData] = useState<any[]>([]); // Adicionando estado para armazenar os serviços
   const [currentService, setCurrentService] = useState<any>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false); // Controla o estado de abertura da sheet
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const [deleteServico] = useMutation(DELETE_SERVICO, {
+    onCompleted: (data) => {
+      setData((prevData) => prevData.filter((service) => service.id !== data.removeServico.id));
+    },
+    onError: (error) => {
+      console.error("Erro ao excluir serviço:", error);
+    },
+  });
+
+  const [updateServico] = useMutation(UPDATE_SERVICO, {
+    onCompleted: (data) => {
+      setData((prevData) =>
+        prevData.map((item) =>
+          item.id === data.updateServico.id ? { ...data.updateServico } : item
+        )
+      );
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar serviço:", error);
+    },
+  });
+
+  useEffect(() => {
+    if (data?.servicos) {
+      setData(data.servicos); // Atualiza o estado quando os dados forem carregados
+    }
+  }, [data]);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
 
   const handleEdit = (service: any) => {
     setCurrentService(service); // Define o serviço a ser editado
@@ -44,14 +71,34 @@ export default function Page() {
   const handleDelete = (serviceId: number) => {
     const confirmed = confirm("Tem certeza que deseja excluir este serviço?");
     if (confirmed) {
-      setData((prevData) => prevData.filter((service) => service.id !== serviceId));
+      deleteServico({ variables: { id: serviceId } });
     }
+  };
+
+  const handleSave = () => {
+    if (currentService?.id) {
+      updateServico({
+        variables: {
+          id: currentService.id,
+          descricao: currentService.descricao,
+          valor: parseFloat(currentService.valor),
+          duracao: parseFloat(currentService.duracao),
+        },
+      });
+    } else {
+      setData((prevData) => [
+        ...prevData,
+        { ...currentService, id: prevData.length + 1 },
+      ]);
+    }
+    setIsSheetOpen(false);
+    setCurrentService(null);
   };
 
   const columns = [
     {
-      accessorKey: "nome",
-      header: "Nome",
+      accessorKey: "descricao",
+      header: "Descrição",
       cell: (info: { getValue: () => any }) => info.getValue(),
     },
     {
@@ -92,17 +139,15 @@ export default function Page() {
 
   return (
     <SidebarProvider>
-      {/* Passando o setData para o AppSidebar */}
       <AppSidebar setData={setData} />
       <SidebarInset>
         <Header />
         <main className="p-4">
           <h1 className="text-lg font-bold mb-4">Serviços</h1>
-          <DataTable columns={columns} data={data} />
+          <DataTable columns={columns} data={dataList} />
         </main>
       </SidebarInset>
 
-      {/* Sheet com controle para não fechar automaticamente */}
       {isSheetOpen && (
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetContent side="right">
@@ -114,14 +159,14 @@ export default function Page() {
             </SheetHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="nome" className="text-right">Nome</Label>
+                <Label htmlFor="descricao" className="text-right">Descrição</Label>
                 <Input
-                  id="nome"
-                  value={currentService?.nome || ""}
+                  id="descricao"
+                  value={currentService?.descricao || ""}
                   onChange={(e) =>
                     setCurrentService((prev: any) => ({
                       ...prev,
-                      nome: e.target.value,
+                      descricao: e.target.value,
                     }))
                   }
                   className="col-span-3"
@@ -157,24 +202,7 @@ export default function Page() {
               </div>
             </div>
             <SheetFooter>
-              <Button
-                onClick={() => {
-                  if (currentService?.id) {
-                    setData((prevData) =>
-                      prevData.map((item) =>
-                        item.id === currentService.id ? { ...currentService } : item
-                      )
-                    );
-                  } else {
-                    setData((prevData) => [
-                      ...prevData,
-                      { ...currentService, id: prevData.length + 1 },
-                    ]);
-                  }
-                  setIsSheetOpen(false);
-                  setCurrentService(null); 
-                }}
-              >
+              <Button onClick={handleSave}>
                 {currentService ? "Salvar alterações" : "Criar Serviço"}
               </Button>
               <SheetClose asChild>

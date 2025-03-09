@@ -11,6 +11,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { useMutation } from '@apollo/client';
+import { CREATE_SERVICO } from '@/graphql/mutations';
 
 export default function CreateServiceDialog({
   setData, // Recebe a função setData
@@ -19,18 +21,27 @@ export default function CreateServiceDialog({
   children: React.ReactNode;
   setData: React.Dispatch<React.SetStateAction<any[]>>;
 }) {
-  const [nome, setNome] = useState("");
+  const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
   const [duracao, setDuracao] = useState("");
 
+  const [createServico] = useMutation(CREATE_SERVICO, {
+    onCompleted: (data) => {
+      setData((prevData) => [...prevData, data.createServico]); // Adiciona o novo serviço à lista
+    },
+    onError: (error) => {
+      console.error("Erro ao criar serviço:", error);
+    },
+  });
+
   const handleSave = () => {
-    const newService = {
-      id: Date.now(), // ID único gerado com base no timestamp
-      nome,
-      valor,
-      duracao,
-    };
-    setData((prevData) => [...prevData, newService]); // Adiciona o novo serviço à lista
+    createServico({
+      variables: {
+        descricao,
+        valor: parseFloat(valor),
+        duracao: parseFloat(duracao), // Certifique-se de que duracao é um número
+      },
+    });
   };
 
   return (
@@ -45,14 +56,14 @@ export default function CreateServiceDialog({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
+            <Label htmlFor="descricao" className="text-right">
               Serviço
             </Label>
             <Input
-              id="name"
+              id="descricao"
               placeholder="Digite a descrição do serviço"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
               className="col-span-3"
             />
           </div>
@@ -75,6 +86,7 @@ export default function CreateServiceDialog({
             </Label>
             <Input
               id="duracao"
+              type="number"
               placeholder="Duração do serviço"
               value={duracao}
               onChange={(e) => setDuracao(e.target.value)}
