@@ -1,7 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ApolloProvider } from "@apollo/client";
-import client from "./apollo-client"; // Importa a configuração do Apollo
-import Login from "./pages/Login/login"
+import client from "./apollo-client";
+import { AuthProvider } from "./context/authContext";
+import PrivateRoute from "./components/PrivateRoute";
+import Login from "./pages/Login/login";
 import RecoverAccount from "./pages/RecoverAccount/recover-account";
 import NewPassword from "./pages/NewPassword/new-password";
 import HomeScreen from "./pages/HomeScreen/home-screen";
@@ -17,20 +19,81 @@ const App = () => {
   return (
     <ApolloProvider client={client}>
       <Router>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/recover-account" element={<RecoverAccount />} />
-          <Route path="/new-password" element={<NewPassword />} />
-          <Route path="/home-screen" element={<HomeScreen />} />
-          <Route path="/utentes-screen" element={<UtentesScreen />} />
-          <Route path="/collaborators-screen" element={<CollaboratorsScreen />} />
-          <Route path="/services-screen" element={<ServicesScreen />} />
-          <Route path="/statistics-screen" element={<StatisticsScreen />} />
-          <Route path="/vacance-screen" element={<VacanceScreen />} />
-          <Route path="/role-screen" element={<RoleScreen />} />
-          <Route path="/permission-screen" element={<PermissionScreen />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            {/* Rotas públicas */}
+            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/recover-account" element={<RecoverAccount />} />
+            <Route path="/new-password" element={<NewPassword />} />
+
+            {/* Rotas privadas */}
+            <Route
+              path="/home-screen"
+              element={
+                <PrivateRoute>
+                  <HomeScreen />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/utentes-screen"
+              element={
+                <PrivateRoute>
+                  <UtentesScreen />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/collaborators-screen"
+              element={
+                <PrivateRoute>
+                  <CollaboratorsScreen />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/services-screen"
+              element={
+                <PrivateRoute>
+                  <ServicesScreen />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/statistics-screen"
+              element={
+                <PrivateRoute>
+                  <StatisticsScreen />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/vacance-screen"
+              element={
+                <PrivateRoute>
+                  <VacanceScreen />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/role-screen"
+              element={
+                <PrivateRoute>
+                  <RoleScreen />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/permission-screen"
+              element={
+                <PrivateRoute>
+                  <PermissionScreen />
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </AuthProvider>
       </Router>
     </ApolloProvider>
   );

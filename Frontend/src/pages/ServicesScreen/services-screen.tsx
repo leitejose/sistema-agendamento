@@ -28,9 +28,11 @@ import {
 
 export default function Page() {
   const { loading, error, data } = useQuery<GetServicosData>(GET_SERVICOS);
-  const [dataList, setData] = useState<any[]>([]); // Adicionando estado para armazenar os serviços
+  const [dataList, setData] = useState<any[]>([]);
+  const [filteredData, setFilteredData] = useState<any[]>([]);
   const [currentService, setCurrentService] = useState<any>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   const [deleteServico] = useMutation(DELETE_SERVICO, {
     onCompleted: (data) => {
@@ -56,16 +58,24 @@ export default function Page() {
 
   useEffect(() => {
     if (data?.servicos) {
-      setData(data.servicos); // Atualiza o estado quando os dados forem carregados
+      setData(data.servicos);
     }
   }, [data]);
+
+  useEffect(() => {
+    setFilteredData(
+      dataList.filter((service) =>
+        service.descricao.toLowerCase().includes(searchText.toLowerCase())
+      )
+    );
+  }, [searchText, dataList]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
   const handleEdit = (service: any) => {
-    setCurrentService(service); // Define o serviço a ser editado
-    setIsSheetOpen(true); // Abre a sheet
+    setCurrentService(service);
+    setIsSheetOpen(true);
   };
 
   const handleDelete = (serviceId: number) => {
@@ -139,12 +149,17 @@ export default function Page() {
 
   return (
     <SidebarProvider>
-      <AppSidebar setData={setData} />
+      <AppSidebar setData={setData} setSearchText={setSearchText} dataList={dataList} />
       <SidebarInset>
         <Header />
         <main className="p-4">
-          <h1 className="text-lg font-bold mb-4">Serviços</h1>
-          <DataTable columns={columns} data={dataList} />
+          <div className="print-header">
+            
+            <h1 className="text-lg font-bold mb-4">Serviços</h1>
+          </div>
+          <div className="print-content">
+            <DataTable columns={columns} data={filteredData} />
+          </div>
         </main>
       </SidebarInset>
 

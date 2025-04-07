@@ -29,3 +29,39 @@ export const UPDATE_SERVICO = gql`
     }
   }
 `;
+
+export const GET_COLABORADORES = gql`
+  query GetColaboradores {
+    colaboradores {
+      id
+      email
+      id_permissao
+      senha
+      telemovel
+      id_cargo
+      descricao
+    }
+  }
+`;
+
+export const DELETE_COLABORADOR = gql`
+  mutation DeleteColaborador($id: ID!) {
+    removeColaborador(id: $id) {
+      id
+    }
+  }
+`;
+
+export const UPDATE_COLABORADOR = gql`
+  mutation UpdateColaborador($id: ID!, $email: String!, $id_permissao: Int!, $senha: String!, $telemovel: String!, $id_cargo: Int!, $descricao: String!) {
+    updateColaborador(id: $id, email: $email, id_permissao: $id_permissao, senha: $senha, telemovel: $telemovel, id_cargo: $id_cargo, descricao: $descricao) {
+      id
+      email
+      id_permissao
+      senha
+      telemovel
+      id_cargo
+      descricao
+    }
+  }
+`;
