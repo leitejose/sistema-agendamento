@@ -22,17 +22,26 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useAuth } from "@/context/authContext"; // Importe o contexto de autenticação
+import { useApolloClient } from "@apollo/client"; // Importe o Apollo Client
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string;
+  };
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
+  const { logout } = useAuth(); // Acesse o método logout do contexto
+  const client = useApolloClient(); // Acesse o Apollo Client
+
+  const handleLogout = () => {
+    logout(); // Realiza o logout
+    client.clearStore(); // Limpa o cache do Apollo Client
+  };
 
   return (
     <SidebarMenu>
@@ -73,8 +82,7 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}> {/* Chama o handleLogout */}
               <LogOut />
               Log out
             </DropdownMenuItem>
@@ -82,5 +90,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

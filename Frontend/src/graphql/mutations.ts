@@ -28,3 +28,97 @@ export const RESET_PASSWORD = gql`
     resetPassword(token: $token, newPassword: $newPassword)
   }
 `;
+
+export const GET_AGENDAMENTOS = gql`
+  query GetAgendamentos {
+    getAgendamentos {
+      id
+      id_utente
+      id_colaborador
+      id_servicos
+      data_agendamento
+      hora_inicio
+      hora_fim
+      status
+      observacoes
+    }
+  }
+`;
+
+export const CREATE_AGENDAMENTO = gql`
+  mutation CreateAgendamento(
+    $clienteId: Int!
+    $funcionarioId: Int!
+    $servicoId: Int!
+    $dataAgendamento: DateTime!
+    $horaInicio: DateTime!
+    $horaFim: DateTime
+    $status: String!
+    $observacoes: String
+  ) {
+    createAgendamento(
+      clienteId: $clienteId
+      funcionarioId: $funcionarioId
+      servicoId: $servicoId
+      dataAgendamento: $dataAgendamento
+      horaInicio: $horaInicio
+      horaFim: $horaFim
+      status: $status
+      observacoes: $observacoes
+    ) {
+      id
+      clienteId
+      funcionarioId
+      servicoId
+      dataAgendamento
+      horaInicio
+      horaFim
+      status
+      observacoes
+    }
+  }
+`;
+
+export const UPDATE_AGENDAMENTO = gql`
+  mutation UpdateAgendamento(
+    $id: Int!
+    $clienteId: Int!
+    $funcionarioId: Int!
+    $servicoId: Int!
+    $dataAgendamento: DateTime!
+    $horaInicio: DateTime!
+    $horaFim: DateTime
+    $status: String!
+    $observacoes: String
+  ) {
+    updateAgendamento(
+      id: $id
+      clienteId: $clienteId
+      funcionarioId: $funcionarioId
+      servicoId: $servicoId
+      dataAgendamento: $dataAgendamento
+      horaInicio: $horaInicio
+      horaFim: $horaFim
+      status: $status
+      observacoes: $observacoes
+    ) {
+      id
+      clienteId
+      funcionarioId
+      servicoId
+      dataAgendamento
+      horaInicio
+      horaFim
+      status
+      observacoes
+    }
+  }
+`;
+
+export const DELETE_AGENDAMENTO = gql`
+  mutation DeleteAgendamento($id: Int!) {
+    deleteAgendamento(id: $id) {
+      id
+    }
+  }
+`;

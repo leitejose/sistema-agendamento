@@ -16,6 +16,8 @@ import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@apollo/client";
 import { LOGIN_COLABORADOR } from "@/graphql/mutations";
+import React, { useState } from "react";
+import { useAuth } from "@/context/authContext";
 
 const formSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -36,29 +38,33 @@ export const LoginForm = () => {
     defaultValues: { email: "", senha: "" },
   });
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [loginColaborador, { loading, error }] = useMutation(LOGIN_COLABORADOR);
+  // Defina a mutation usando o Apollo Client
+  const [loginMutation] = useMutation(LOGIN_COLABORADOR);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log("Dados enviados para a mutation:", values);
-
+  const handleSubmit = async (values: { email: string; senha: string }) => {
+    setIsSubmitting(true);
     try {
-      const { data } = await loginColaborador({
+      // Execute a mutation com os valores do formulário
+      const { data } = await loginMutation({
         variables: {
-          email: values.email, // Certifique-se de que o nome corresponde ao esperado pelo backend
-          password: values.senha, // Certifique-se de que o nome corresponde ao esperado pelo backend
+          email: values.email,
+          password: values.senha, // Certifique-se de que o backend espera "password"
         },
       });
 
-      console.log("Resposta do backend:", data);
       if (data?.login) {
-        localStorage.setItem("token", data.login);
-        navigate("/home-screen"); // Redireciona para a página principal
+        login(data.login); // Salva o token no contexto de autenticação
+        navigate("/home-screen"); // Redireciona para a tela principal
       } else {
         console.error("Token não recebido.");
       }
     } catch (err) {
       console.error("Erro ao fazer login:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -70,7 +76,7 @@ export const LoginForm = () => {
         </CardHeader>
         <CardContent>
           <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-4">
               <FormField
                 control={form.control}
                 name="email"
@@ -98,11 +104,10 @@ export const LoginForm = () => {
                 )}
               />
               <div className="flex justify-between">
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Entrando..." : "Entrar"}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Entrando..." : "Entrar"}
                 </Button>
               </div>
-              {error && <p className="text-red-500">Erro: {error.message}</p>}
               <div className="flex justify-between">
                 <Button
                   variant={"link"}

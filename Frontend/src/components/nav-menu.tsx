@@ -16,6 +16,16 @@ export function MenuComponent() {
           Home
         </NavLink>
         <NavLink
+          to="/markings-screen"
+          className={({ isActive }) =>
+            `block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors ${
+              isActive ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+            }`
+          }
+        >
+          Marcações
+        </NavLink>
+        <NavLink
           to="/utentes-screen"
           className={({ isActive }) =>
             `block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors ${

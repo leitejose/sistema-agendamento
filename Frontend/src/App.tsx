@@ -14,6 +14,7 @@ import StatisticsScreen from "./pages/StatisticsScreen/statistics-screen";
 import VacanceScreen from "./pages/SettingsPages/VacanceScreen/vacance-screen";
 import RoleScreen from "./pages/SettingsPages/RoleScreen/role-screen";
 import PermissionScreen from "./pages/SettingsPages/PermissionScreen/permission-screen";
+import MarkingsScreen from "./pages/MarkingsScreen/markings-screen";
 
 const App = () => {
   return (
@@ -37,10 +38,18 @@ const App = () => {
               }
             />
             <Route
+              path="/markings-screen"
+              element={
+                <PrivateRoute>
+                  <MarkingsScreen/>
+                </PrivateRoute>
+              }
+            />
+            <Route
               path="/utentes-screen"
               element={
                 <PrivateRoute>
-                  <UtentesScreen />
+                  <UtentesScreen/>
                 </PrivateRoute>
               }
             />
