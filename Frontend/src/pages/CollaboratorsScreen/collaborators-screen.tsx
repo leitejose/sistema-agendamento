@@ -20,23 +20,44 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
+import CreateCollaboratorsDialog from "./create-collaborators-dialog";
 
 export default function Page() {
   const { loading, error, data } = useQuery(GET_COLABORADORES);
   const [dataList, setData] = useState<any[]>([]);
   const [currentColaborador, setCurrentColaborador] = useState<any>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [deleteColaborador] = useMutation(DELETE_COLABORADOR, {
     onCompleted: (data) => {
-      setData((prevData) => prevData.filter((colaborador) => colaborador.id !== data.removeColaborador.id));
+      const removedColaborador = data.removeColaborador;
+      if (removedColaborador) {
+        setData((prevData) =>
+          prevData.filter((colaborador) => colaborador.id !== removedColaborador.id)
+        );
+        console.log("Colaborador excluído com sucesso:", removedColaborador.id);
+      }
     },
     onError: (error) => {
       console.error("Erro ao excluir colaborador:", error);
     },
   });
+  
+  const handleDelete = async (colaboradorId: number) => {
+    const confirmed = confirm("Tem certeza que deseja excluir este colaborador?");
+    if (confirmed) {
+      try {
+        const response = await deleteColaborador({
+          variables: { id: colaboradorId },
+        });
+        console.log("Resposta da exclusão:", response.data);
+      } catch (error) {
+        console.error("Erro ao excluir colaborador:", error);
+      }
+    }
+  };
 
   const [updateColaborador] = useMutation(UPDATE_COLABORADOR, {
     onCompleted: (data) => {
@@ -65,65 +86,69 @@ export default function Page() {
     setIsSheetOpen(true);
   };
 
-  const handleDelete = (colaboradorId: number) => {
-    const confirmed = confirm("Tem certeza que deseja excluir este colaborador?");
-    if (confirmed) {
-      deleteColaborador({ variables: { id: colaboradorId } });
-    }
-  };
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (currentColaborador?.id) {
-      updateColaborador({
-        variables: {
-          id: currentColaborador.id,
-          email: currentColaborador.email,
-          id_permissao: currentColaborador.id_permissao,
-          senha: currentColaborador.senha,
-          telemovel: currentColaborador.telemovel,
-          id_cargo: currentColaborador.id_cargo,
-          descricao: currentColaborador.descricao,
-        },
-      });
+      // Atualizar colaborador existente
+      try {
+        await updateColaborador({
+          variables: {
+            id: currentColaborador.id,
+            descricao: currentColaborador.descricao,
+            email: currentColaborador.email,
+            telemovel: currentColaborador.telemovel,
+            cargoId: parseInt(currentColaborador.cargoId, 10),
+            permissaoId: parseInt(currentColaborador.permissaoId, 10),
+          },
+        });
+        setIsSheetOpen(false);
+      } catch (error) {
+        console.error("Erro ao atualizar colaborador:", error);
+      }
     } else {
-      setData((prevData) => [
-        ...prevData,
-        { ...currentColaborador, id: prevData.length + 1 },
-      ]);
+      // Criar novo colaborador
+      try {
+        await createColaborador({
+          variables: {
+            descricao: currentColaborador.descricao,
+            email: currentColaborador.email,
+            telemovel: currentColaborador.telemovel,
+            cargoId: parseInt(currentColaborador.cargoId, 10),
+            permissaoId: parseInt(currentColaborador.permissaoId, 10),
+            senha: currentColaborador.senha || "senha123", // Adicione uma senha padrão se necessário
+          },
+        });
+        setIsSheetOpen(false);
+      } catch (error) {
+        console.error("Erro ao salvar colaborador:", error);
+      }
     }
-    setIsSheetOpen(false);
-    setCurrentColaborador(null);
   };
 
   const columns = [
+    {
+      accessorKey: "descricao",
+      header: "Nome",
+      cell: (info: { getValue: () => any }) => info.getValue(),
+    },
     {
       accessorKey: "email",
       header: "Email",
       cell: (info: { getValue: () => any }) => info.getValue(),
     },
     {
-      accessorKey: "id_permissao",
-      header: "Permissão",
-      cell: (info: { getValue: () => any }) => info.getValue(),
-    },
-    {
-      accessorKey: "senha",
-      header: "Senha",
-      cell: (info: { getValue: () => any }) => info.getValue(),
-    },
-    {
-      accessorKey: "telemovel",
-      header: "Telemóvel",
-      cell: (info: { getValue: () => any }) => info.getValue(),
-    },
-    {
-      accessorKey: "id_cargo",
+      accessorKey: "cargo.descricao", // Acesse a descrição do cargo
       header: "Cargo",
       cell: (info: { getValue: () => any }) => info.getValue(),
     },
     {
-      accessorKey: "descricao",
-      header: "Descrição",
+      accessorKey: "permissao.descricao", // Acesse a descrição da permissão
+      header: "Permissão",
+      cell: ({ row }: { row: { original: any } }) =>
+        row.original.permissao?.descricao || "Sem Permissão",
+    },
+    {
+      accessorKey: "telemovel",
+      header: "Telemóvel",
       cell: (info: { getValue: () => any }) => info.getValue(),
     },
     {
@@ -155,6 +180,12 @@ export default function Page() {
         <Header />
         <main className="p-4">
           <h1 className="text-lg font-bold mb-4">Colaboradores</h1>
+          <button onClick={() => setIsDialogOpen(true)}>Novo Colaborador</button>
+          <CreateCollaboratorsDialog
+            setData={setData} // Passa a função para atualizar a lista de colaboradores
+            isOpen={isDialogOpen}
+            setIsOpen={setIsDialogOpen}
+          />
           <DataTable columns={columns} data={dataList} />
         </main>
       </SidebarInset>
@@ -169,6 +200,20 @@ export default function Page() {
               </SheetDescription>
             </SheetHeader>
             <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="descricao" className="text-right">Nome</Label>
+                <Input
+                  id="descricao"
+                  value={currentColaborador?.descricao || ""}
+                  onChange={(e) =>
+                    setCurrentColaborador((prev: any) => ({
+                      ...prev,
+                      descricao: e.target.value,
+                    }))
+                  }
+                  className="col-span-3"
+                />
+              </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="email" className="text-right">Email</Label>
                 <Input
@@ -184,8 +229,29 @@ export default function Page() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="id_cargo" className="text-right">Cargo</Label>
+                <select
+                  id="id_cargo"
+                  value={currentColaborador?.id_cargo || ""}
+                  onChange={(e) =>
+                    setCurrentColaborador((prev: any) => ({
+                      ...prev,
+                      id_cargo: e.target.value,
+                    }))
+                  }
+                  className="col-span-3 border rounded p-2"
+                >
+                  <option value="">Selecione um cargo</option>
+                  {data?.cargos?.map((cargo: any) => (
+                    <option key={cargo.id} value={cargo.id}>
+                      {cargo.descricao}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="id_permissao" className="text-right">Permissão</Label>
-                <Input
+                <select
                   id="id_permissao"
                   value={currentColaborador?.id_permissao || ""}
                   onChange={(e) =>
@@ -194,23 +260,17 @@ export default function Page() {
                       id_permissao: e.target.value,
                     }))
                   }
-                  className="col-span-3"
-                />
+                  className="col-span-3 border rounded p-2"
+                >
+                  <option value="">Selecione uma permissão</option>
+                  {data?.permissoes?.map((permissao: any) => (
+                    <option key={permissao.id} value={permissao.id}>
+                      {permissao.descricao}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="senha" className="text-right">Senha</Label>
-                <Input
-                  id="senha"
-                  value={currentColaborador?.senha || ""}
-                  onChange={(e) =>
-                    setCurrentColaborador((prev: any) => ({
-                      ...prev,
-                      senha: e.target.value,
-                    }))
-                  }
-                  className="col-span-3"
-                />
-              </div>
+              
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="telemovel" className="text-right">Telemóvel</Label>
                 <Input
@@ -225,34 +285,7 @@ export default function Page() {
                   className="col-span-3"
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="id_cargo" className="text-right">Cargo</Label>
-                <Input
-                  id="id_cargo"
-                  value={currentColaborador?.id_cargo || ""}
-                  onChange={(e) =>
-                    setCurrentColaborador((prev: any) => ({
-                      ...prev,
-                      id_cargo: e.target.value,
-                    }))
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="descricao" className="text-right">Descrição</Label>
-                <Input
-                  id="descricao"
-                  value={currentColaborador?.descricao || ""}
-                  onChange={(e) =>
-                    setCurrentColaborador((prev: any) => ({
-                      ...prev,
-                      descricao: e.target.value,
-                    }))
-                  }
-                  className="col-span-3"
-                />
-              </div>
+             
             </div>
             <SheetFooter>
               <Button onClick={handleSave}>

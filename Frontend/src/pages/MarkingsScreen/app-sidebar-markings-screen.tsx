@@ -13,6 +13,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { SearchForm } from "./markings-search-form";
+import CreateMarkingsDialog from "./create-markings-dialog";
 
 export function AppSidebar({ setData, setSearchText, dataList }: { setData: React.Dispatch<React.SetStateAction<any[]>>, setSearchText: React.Dispatch<React.SetStateAction<string>>, dataList: any[] }) {
   return (
@@ -26,12 +27,12 @@ export function AppSidebar({ setData, setSearchText, dataList }: { setData: Reac
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <CreateServiceDialog setData={setData}>
+            <CreateMarkingsDialog setData={setData}>
               <SidebarMenuButton>
                 <Plus />
-                Novo Serviço
+                Nova Marcação
               </SidebarMenuButton>
-            </CreateServiceDialog>
+            </CreateMarkingsDialog>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

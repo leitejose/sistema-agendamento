@@ -122,3 +122,38 @@ export const DELETE_AGENDAMENTO = gql`
     }
   }
 `;
+
+export const UPDATE_COLABORADOR = gql`
+  mutation UpdateColaborador(
+    $id: Int!,
+    $descricao: String!,
+    $email: String!,
+    $telemovel: String!,
+    $id_cargo: Int!,
+    $id_permissao: Int!
+  ) {
+    updateColaborador(
+      id: $id,
+      updateColaboradorInput: {
+        descricao: $descricao,
+        email: $email,
+        telemovel: $telemovel,
+        id_cargo: $id_cargo,
+        id_permissao: $id_permissao
+      }
+    ) {
+      id
+      descricao
+      email
+      telemovel
+      cargo {
+        id
+        descricao
+      }
+      permissao {
+        id
+        descricao
+      }
+    }
+  }
+`;

@@ -22,6 +22,18 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { z } from "zod";
+
+const agendamentoSchema = z.object({
+  id_utente: z.string().nonempty("O ID do utente é obrigatório."),
+  id_colaborador: z.string().nonempty("O ID do colaborador é obrigatório."),
+  id_servicos: z.string().nonempty("O ID do serviço é obrigatório."),
+  data_agendamento: z.string().nonempty("A data do agendamento é obrigatória."),
+  hora_inicio: z.string().nonempty("A hora de início é obrigatória."),
+  hora_fim: z.string().optional(),
+  status: z.string().nonempty("O status é obrigatório."),
+  observacoes: z.string().optional(),
+});
 
 export default function Page() {
   const { loading, error, data } = useQuery(GET_AGENDAMENTOS);
@@ -73,28 +85,50 @@ export default function Page() {
   };
 
   const handleSave = () => {
-    if (currentAgendamento?.id) {
-      updateAgendamento({
-        variables: {
-          id: currentAgendamento.id,
-          id_utente: currentAgendamento.id_utente,
-          id_colaborador: currentAgendamento.id_colaborador,
-          id_servicos: currentAgendamento.id_servicos,
-          data_agendamento: currentAgendamento.data_agendamento,
-          hora_inicio: currentAgendamento.hora_inicio,
-          hora_fim: currentAgendamento.hora_fim,
-          status: currentAgendamento.status,
-          observacoes: currentAgendamento.observacoes,
-        },
+    try {
+      // Validação com Zod
+      agendamentoSchema.parse({
+        id_utente: currentAgendamento?.id_utente || "",
+        id_colaborador: currentAgendamento?.id_colaborador || "",
+        id_servicos: currentAgendamento?.id_servicos || "",
+        data_agendamento: currentAgendamento?.data_agendamento || "",
+        hora_inicio: currentAgendamento?.hora_inicio || "",
+        hora_fim: currentAgendamento?.hora_fim || "",
+        status: currentAgendamento?.status || "",
+        observacoes: currentAgendamento?.observacoes || "",
       });
-    } else {
-      setData((prevData) => [
-        ...prevData,
-        { ...currentAgendamento, id: prevData.length + 1 },
-      ]);
+
+      // Se passar na validação, salva ou atualiza o agendamento
+      if (currentAgendamento?.id) {
+        updateAgendamento({
+          variables: {
+            id: currentAgendamento.id,
+            id_utente: currentAgendamento.id_utente,
+            id_colaborador: currentAgendamento.id_colaborador,
+            id_servicos: currentAgendamento.id_servicos,
+            data_agendamento: currentAgendamento.data_agendamento,
+            hora_inicio: currentAgendamento.hora_inicio,
+            hora_fim: currentAgendamento.hora_fim,
+            status: currentAgendamento.status,
+            observacoes: currentAgendamento.observacoes,
+          },
+        });
+      } else {
+        setData((prevData) => [
+          ...prevData,
+          { ...currentAgendamento, id: prevData.length + 1 },
+        ]);
+      }
+
+      setIsSheetOpen(false);
+      setCurrentAgendamento(null);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        alert(error.errors.map((err) => err.message).join("\n"));
+      } else {
+        console.error("Erro inesperado:", error);
+      }
     }
-    setIsSheetOpen(false);
-    setCurrentAgendamento(null);
   };
 
   const columns = [
@@ -107,6 +141,28 @@ export default function Page() {
     { accessorKey: "hora_fim", header: "Hora Fim", cell: (info) => info.getValue() ? new Date(info.getValue()).toLocaleTimeString() : "-" },
     { accessorKey: "status", header: "Status" },
     { accessorKey: "observacoes", header: "Observações" },
+    {
+      id: "actions",
+      header: "Ações",
+      cell: ({ row }: { row: { original: any } }) => (
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleEdit(row.original)}
+            className="text-500 hover:underline"
+            aria-label="Editar agendamento"
+          >
+            <Edit className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => handleDelete(row.original.id)}
+            className="text-red-500 hover:underline"
+            aria-label="Excluir agendamento"
+          >
+            <Trash2 className="h-5 w-5" />
+          </button>
+        </div>
+      ),
+    },
   ];
 
   return (

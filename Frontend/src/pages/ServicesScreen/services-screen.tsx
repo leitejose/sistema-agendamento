@@ -87,12 +87,20 @@ export default function Page() {
 
   const handleSave = () => {
     if (currentService?.id) {
+      const valor = parseFloat(currentService.valor);  // Converte para float
+      const duracao = parseFloat(currentService.duracao); // Converte para float
+  
+      if (isNaN(valor) || isNaN(duracao)) {
+        alert("Por favor, insira valores numéricos válidos para Valor e Duração.");
+        return;
+      }
+  
       updateServico({
         variables: {
           id: currentService.id,
           descricao: currentService.descricao,
-          valor: parseFloat(currentService.valor),
-          duracao: parseFloat(currentService.duracao),
+          valor: valor,  // Valor convertido para número
+          duracao: duracao,  // Duração convertida para número
         },
       });
     } else {
@@ -104,7 +112,7 @@ export default function Page() {
     setIsSheetOpen(false);
     setCurrentService(null);
   };
-
+  
   const columns = [
     {
       accessorKey: "descricao",

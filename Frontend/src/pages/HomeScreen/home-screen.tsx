@@ -25,7 +25,16 @@ export default function Page() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbPage>October 2024</BreadcrumbPage>
+              <BreadcrumbPage>
+  {
+    (() => {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('pt-PT', { month: 'long', year: 'numeric' });
+      const [mes, ano] = formatter.format(now).split(' de ');
+      return `${mes.toUpperCase()} ${ano}`;
+    })()
+  }
+</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

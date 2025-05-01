@@ -1,32 +1,29 @@
-import { Search } from "lucide-react";
+import { Search } from "lucide-react"
 
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/ui/label"
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarInput,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/sidebar"
+interface SearchFormProps {
+  className?: string
+  setSearchText: (text: string) => void
+}
 
-export function SearchForm({
-  setSearchText,
-  ...props
-}: { setSearchText: (value: string) => void } & React.ComponentProps<"form">) {
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchText(e.target.value);
-  };
-
+export function SearchForm({ className, setSearchText }: SearchFormProps) {
   return (
-    <form {...props}>
+    <form className={className}>
       <SidebarGroup className="py-0">
         <SidebarGroupContent className="relative">
           <Label htmlFor="search" className="sr-only">
-            Search
+            Buscar
           </Label>
           <SidebarInput
             id="search"
-            placeholder="Buscar Colaborador"
+            placeholder="Buscar Serviço"
+            onChange={(e) => setSearchText(e.target.value)} // Atualiza o estado no componente pai
             className="pl-8"
-            onChange={handleInputChange}
           />
           <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 select-none opacity-50" />
         </SidebarGroupContent>
