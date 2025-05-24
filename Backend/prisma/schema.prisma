@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Colaborador {
+  id             Int      @id @default(autoincrement())
+  descricao      String
+  email          String   @unique
+  telemovel      String
+  senha          String
+  cargoId        Int? // Use diretamente o nome da coluna no banco de dados
+  cargo          Cargo?   @relation(fields: [cargoId], references: [id])
+  permissaoId    Int? // Use diretamente o nome da coluna no banco de dados
+  permissao      Permissao? @relation(fields: [permissaoId], references: [id])
+  disponibilidades Disponibilidade[]
+  agendamentos   Agendamento[]   @relation("ColaboradorAgendamentos")
+}
+
+model Permissao {
+  id           Int           @id @default(autoincrement())
+  descricao    String
+  colaboradores Colaborador[]
+}
+
+model Utente {
+  id           Int             @id @default(autoincrement())
+  nome         String
+  email        String
+  telemovel    String?          // Campo opcional (aceita null)
+  morada       String?
+  concelho     String?
+  distrito     String?
+  pais         String?
+  codigo_postal String?
+  agendamentos Agendamento[]   @relation("UtenteAgendamentos") // Adicione este campo
+}
+
+model Servico {
+  id              Int             @id @default(autoincrement())
+  descricao       String          @db.VarChar(45)
+  valor           Decimal         @db.Decimal(10, 2)
+  duracao         Float
+  agendamentos    Agendamento[]   @relation("ServicoAgendamentos")
+}
+
+model Agendamento {
+  id               Int               @id @default(autoincrement())
+  id_utente        Int
+  id_colaborador   Int
+  id_servicos      Int
+  data_agendamento DateTime
+  hora_inicio      DateTime
+  hora_fim         DateTime?
+  statusId         Int               // Relacionamento com a tabela StatusAgendamento
+  observacoes      String?
+  criado_em        DateTime          @default(now())
+  atualizado_em    DateTime          @updatedAt
+
+  utente           Utente            @relation("UtenteAgendamentos", fields: [id_utente], references: [id], map: "FK_Agendamento_Utente")
+  colaborador      Colaborador       @relation("ColaboradorAgendamentos", fields: [id_colaborador], references: [id], map: "FK_Agendamento_Colaborador")
+  servico          Servico           @relation("ServicoAgendamentos", fields: [id_servicos], references: [id], map: "FK_Agendamento_Servico")
+  status           StatusAgendamento @relation(fields: [statusId], references: [id]) // Relacionamento com StatusAgendamento
+}
+
+model StatusAgendamento {
+  id        Int      @id @default(autoincrement())
+  descricao String
+  cor       String
+  agendamentos Agendamento[] // Relacionamento com agendamentos
+
+  @@map("status_agendamento") // Nome da tabela no banco
+}
+
+
+model Disponibilidade {
+  id              Int         @id @default(autoincrement())
+  id_colaborador  Int
+  dia_da_semana   DateTime
+  hora_inicio     DateTime
+  colaborador     Colaborador @relation(fields: [id_colaborador], references: [id])
+}
+
+model Cargo {
+  id           Int           @id @default(autoincrement())
+  descricao    String
+  colaboradores Colaborador[]
+}

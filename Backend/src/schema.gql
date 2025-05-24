@@ -1,0 +1,202 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Permissao {
+  id: Int!
+  descricao: String!
+}
+
+type ServicoModel {
+  id: Int!
+  descricao: String!
+  valor: Float!
+  duracao: Int!
+}
+
+type Colaborador {
+  id: Int!
+  descricao: String!
+  email: String!
+  telemovel: String!
+  senha: String!
+  cargo: Cargo
+  permissao: Permissao
+}
+
+type Cargo {
+  id: Int!
+  descricao: String!
+  colaboradores: [Colaborador!]
+}
+
+type UtenteModel {
+  id: Int!
+  nome: String!
+  email: String!
+  telemovel: String
+  morada: String
+  concelho: String
+  distrito: String
+  pais: String
+  codigo_postal: String
+}
+
+type AuthPayload {
+  token: String!
+  colaborador: Colaborador!
+}
+
+type Agendamento {
+  id: Int!
+  id_utente: Int!
+  id_colaborador: Int!
+  id_servicos: Int!
+  data_agendamento: DateTime!
+  hora_inicio: DateTime!
+  hora_fim: DateTime
+  statusId: Int!
+  observacoes: String
+  criado_em: DateTime!
+  atualizado_em: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type StatusAgendamento {
+  id: Int!
+  descricao: String!
+  cor: String!
+}
+
+type Query {
+  permissoes: [Permissao!]!
+  permissao(id: Int!): Permissao!
+  servicos: [ServicoModel!]!
+  servico(id: Int!): ServicoModel!
+  cargos: [Cargo!]!
+  cargo(id: Int!): Cargo!
+  colaboradores: [Colaborador!]!
+  findOneColaborador(id: Int!): Colaborador!
+  utentes: [UtenteModel!]!
+  getAgendamentos: [Agendamento!]!
+  statusAgendamentos: [StatusAgendamento!]!
+}
+
+type Mutation {
+  createPermissoes(createPermissoesInput: CreatePermissoesInput!): Permissao!
+  updatePermissoes(id: Int!, updatePermissoesInput: UpdatePermissoesInput!): Permissao!
+  removePermissoes(id: Int!): Permissao!
+  createServico(createServicoInput: CreateServicoInput!): ServicoModel!
+  updateServico(id: Int!, updateServicoInput: UpdateServicoInput!): ServicoModel!
+  removeServico(id: Int!): ServicoModel!
+  createCargo(createCargoInput: CreateCargoInput!): Cargo!
+  removeCargo(id: Int!): Cargo!
+  createColaborador(createColaboradorInput: CreateColaboradorInput!): Colaborador!
+  updateColaborador(id: Int!, updateColaboradorInput: UpdateColaboradorInput!): Colaborador!
+  removeColaborador(id: Float!): Colaborador!
+  updateUtente(id: Int!, updateUtenteInput: UpdateUtenteInput!): UtenteModel!
+  createUtente(data: CreateUtenteInput!): UtenteModel!
+  removeUtente(id: Int!): UtenteModel!
+  loginColaborador(loginInput: LoginInput!): AuthPayload!
+  login(email: String!, password: String!): String!
+  forgotPassword(email: String!): String!
+  resetPassword(token: String!, newPassword: String!): String!
+  createAgendamento(createAgendamentoInput: CreateAgendamentoInput!): Agendamento!
+  updateAgendamento(updateAgendamentoInput: UpdateAgendamentoInput!): Agendamento!
+  removeAgendamento(id: Int!): Agendamento!
+}
+
+input CreatePermissoesInput {
+  descricao: String!
+}
+
+input UpdatePermissoesInput {
+  descricao: String!
+}
+
+input CreateServicoInput {
+  descricao: String!
+  valor: Float!
+  duracao: Float!
+}
+
+input UpdateServicoInput {
+  descricao: String
+  valor: Float
+  duracao: Float
+}
+
+input CreateCargoInput {
+  descricao: String!
+}
+
+input CreateColaboradorInput {
+  descricao: String!
+  email: String!
+  telemovel: String!
+  senha: String!
+  permissaoId: Int!
+  cargoId: Int!
+}
+
+input UpdateColaboradorInput {
+  descricao: String!
+  email: String!
+  telemovel: String!
+  id_cargo: Int!
+  id_permissao: Int!
+}
+
+input UpdateUtenteInput {
+  nome: String!
+  email: String!
+  telemovel: String
+  morada: String!
+  distrito: String!
+  concelho: String!
+  codigo_postal: String!
+  pais: String!
+}
+
+input CreateUtenteInput {
+  nome: String!
+  email: String!
+  telemovel: String
+  morada: String!
+  distrito: String!
+  concelho: String!
+  codigo_postal: String!
+  pais: String!
+}
+
+input LoginInput {
+  email: String!
+  senha: String!
+}
+
+input CreateAgendamentoInput {
+  data_agendamento: String!
+  hora_inicio: String!
+  hora_fim: String
+  statusId: Int!
+  observacoes: String
+  utenteId: Int!
+  colaboradorId: Int!
+  servicoId: Int!
+}
+
+input UpdateAgendamentoInput {
+  id: Int!
+  data_agendamento: String!
+  hora_inicio: String!
+  hora_fim: String
+  observacoes: String
+  utenteId: Int!
+  colaboradorId: Int!
+  servicoId: Int!
+  statusId: Int!
+}
