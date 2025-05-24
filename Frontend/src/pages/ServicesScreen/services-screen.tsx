@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_SERVICOS, DELETE_SERVICO, UPDATE_SERVICO } from '@/graphql/queries';
+import { GET_SERVICOS } from '@/graphql/queries';
+import { DELETE_SERVICO, UPDATE_SERVICO } from '@/graphql/mutations';
 import { GetServicosData } from '@/graphql/types';
 import { AppSidebar } from "@/pages/ServicesScreen/app-sidebar-services-screen";
 import {

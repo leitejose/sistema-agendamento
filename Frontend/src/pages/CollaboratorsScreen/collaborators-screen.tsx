@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_COLABORADORES, DELETE_COLABORADOR, UPDATE_COLABORADOR } from '@/graphql/queries';
+import { DELETE_COLABORADOR, UPDATE_COLABORADOR } from '@/graphql/mutations';
+import { GET_COLABORADORES } from '@/graphql/queries';
 import { AppSidebar } from "@/pages/CollaboratorsScreen/app-sidebar-collaborators-screen";
 import {
   SidebarInset,

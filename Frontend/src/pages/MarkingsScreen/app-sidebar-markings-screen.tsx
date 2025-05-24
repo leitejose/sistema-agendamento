@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Plus } from "lucide-react";
 import { NavUser } from "@/components/nav-user-dropdown";
-import CreateServiceDialog from "@/pages/ServicesScreen/create-services-dialog";
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +12,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { SearchForm } from "./markings-search-form";
-import CreateMarkingsDialog from "./create-markings-dialog";
+import CreateMarkingsDialog from "@/pages/MarkingsScreen/create-markings-dialog";
+
 
 export function AppSidebar({ setData, setSearchText, dataList }: { setData: React.Dispatch<React.SetStateAction<any[]>>, setSearchText: React.Dispatch<React.SetStateAction<string>>, dataList: any[] }) {
   return (
@@ -32,7 +32,8 @@ export function AppSidebar({ setData, setSearchText, dataList }: { setData: Reac
                 <Plus />
                 Nova Marcação
               </SidebarMenuButton>
-            </CreateMarkingsDialog>
+              
+           </CreateMarkingsDialog>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

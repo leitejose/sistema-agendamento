@@ -6,7 +6,8 @@ import {
 import { Header } from "@/components/header";
 import { DataTable } from "@/components/data-table";
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_UTENTES, UPDATE_UTENTE, DELETE_UTENTE } from "@/graphql/queries";
+import {UPDATE_UTENTE, DELETE_UTENTE } from "@/graphql/mutations";
+import { GET_UTENTES } from "@/graphql/queries";
 import { useState, useEffect } from "react";
 import { Edit, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";

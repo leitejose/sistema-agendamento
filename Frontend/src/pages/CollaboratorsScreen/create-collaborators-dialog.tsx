@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/select";
 
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_CARGOS, GET_PERMISSOES, CREATE_COLABORADOR } from "@/graphql/queries";
+import { GET_CARGOS, GET_PERMISSOES } from "@/graphql/queries";
+import { CREATE_COLABORADOR } from "@/graphql/mutations";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 

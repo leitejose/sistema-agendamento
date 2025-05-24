@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { CREATE_UTENTE, GET_UTENTES } from "@/graphql/queries"
+import { GET_UTENTES } from "@/graphql/queries"
+import { CREATE_UTENTE } from "@/graphql/mutations"
 import { useMutation } from "@apollo/client"
 import { useState } from "react"
 import { z } from 'zod';
