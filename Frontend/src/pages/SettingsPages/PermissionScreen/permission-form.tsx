@@ -12,9 +12,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function PermissionForm({ onAddPermission }: { onAddPermission: (descricao: string) => void }) {
-  const [descricao, setDescricao] = React.useState("");
+export function PermissionForm({
+  onAddPermission,
+  initialValues,
+  onCancelEdit,
+}: {
+  onAddPermission: (descricao: string) => void;
+  initialValues?: any;
+  onCancelEdit?: () => void;
+}) {
+  const [descricao, setDescricao] = React.useState(initialValues?.descricao || "");
   const [error, setError] = React.useState("");
+
+  React.useEffect(() => {
+    setDescricao(initialValues?.descricao || "");
+  }, [initialValues]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -27,6 +39,9 @@ export function PermissionForm({ onAddPermission }: { onAddPermission: (descrica
     onAddPermission(descricao);
     setDescricao("");
     setError(""); 
+  };
+  const handleCancelEdit = () => {
+    if (onCancelEdit) onCancelEdit();
   };
 
   return (
@@ -49,11 +64,20 @@ export function PermissionForm({ onAddPermission }: { onAddPermission: (descrica
               {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
             </div>
           </div>
+          <CardFooter className="flex justify-center gap-2 mt-4">
+            {initialValues && initialValues.id ? (
+              <>
+                <Button type="submit">Alterar</Button>
+                <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                  Cancelar
+                </Button>
+              </>
+            ) : (
+              <Button type="submit">Adicionar</Button>
+            )}
+          </CardFooter>
         </form>
       </CardContent>
-      <CardFooter className="flex justify-center">
-        <Button onClick={handleSubmit}>Adicionar</Button>
-      </CardFooter>
     </Card>
   );
 }

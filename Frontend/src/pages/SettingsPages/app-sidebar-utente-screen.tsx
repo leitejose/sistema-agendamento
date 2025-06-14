@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Key, TicketsPlane, User } from "lucide-react";
+import { Key, TicketsPlane, User, Contact, Clipboard } from "lucide-react";
 import { NavUser } from "@/components/nav-user-dropdown";
 import {
   Sidebar,
@@ -30,6 +30,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu className="pt-5">
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => navigate("/utentes-screen")}>
+              <User />
+              Utentes
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          {/* Colaboradores*/}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => navigate("/collaborators-screen")}>
+              <Contact />
+              Colaboradores
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          {/* Serviços */}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => navigate("/services-screen")}>
+              <Clipboard />
+              Serviços
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => navigate("/vacance-screen")}>
               <TicketsPlane />

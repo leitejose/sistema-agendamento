@@ -2,9 +2,16 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Cargo {
+  id: Int!
+  descricao: String!
+  permissoes: [Permissao!]
+}
+
 type Permissao {
   id: Int!
   descricao: String!
+  cargos: [Cargo!]
 }
 
 type ServicoModel {
@@ -24,12 +31,6 @@ type Colaborador {
   permissao: Permissao
 }
 
-type Cargo {
-  id: Int!
-  descricao: String!
-  colaboradores: [Colaborador!]
-}
-
 type UtenteModel {
   id: Int!
   nome: String!
@@ -43,7 +44,7 @@ type UtenteModel {
 }
 
 type AuthPayload {
-  token: String!
+  accessToken: String!
   colaborador: Colaborador!
 }
 
@@ -72,6 +73,14 @@ type StatusAgendamento {
   cor: String!
 }
 
+type Ferias {
+  id: Int!
+  descricao: String!
+  data_inicio: DateTime!
+  data_fim: DateTime!
+  colaborador_id: Int!
+}
+
 type Query {
   permissoes: [Permissao!]!
   permissao(id: Int!): Permissao!
@@ -81,9 +90,12 @@ type Query {
   cargo(id: Int!): Cargo!
   colaboradores: [Colaborador!]!
   findOneColaborador(id: Int!): Colaborador!
+  meColaborador: Colaborador!
   utentes: [UtenteModel!]!
   getAgendamentos: [Agendamento!]!
   statusAgendamentos: [StatusAgendamento!]!
+  ferias: [Ferias!]!
+  feriasById(id: Int!): Ferias!
 }
 
 type Mutation {
@@ -95,6 +107,7 @@ type Mutation {
   removeServico(id: Int!): ServicoModel!
   createCargo(createCargoInput: CreateCargoInput!): Cargo!
   removeCargo(id: Int!): Cargo!
+  updateCargo(id: Int!, updateCargoInput: UpdateCargoInput!): Cargo!
   createColaborador(createColaboradorInput: CreateColaboradorInput!): Colaborador!
   updateColaborador(id: Int!, updateColaboradorInput: UpdateColaboradorInput!): Colaborador!
   removeColaborador(id: Float!): Colaborador!
@@ -108,6 +121,9 @@ type Mutation {
   createAgendamento(createAgendamentoInput: CreateAgendamentoInput!): Agendamento!
   updateAgendamento(updateAgendamentoInput: UpdateAgendamentoInput!): Agendamento!
   removeAgendamento(id: Int!): Agendamento!
+  createFerias(data: CreateFeriasInput!): Ferias!
+  updateFerias(data: UpdateFeriasInput!): Ferias!
+  removeFerias(id: Int!): Ferias!
 }
 
 input CreatePermissoesInput {
@@ -132,6 +148,12 @@ input UpdateServicoInput {
 
 input CreateCargoInput {
   descricao: String!
+  permissoesIds: [Int!]!
+}
+
+input UpdateCargoInput {
+  descricao: String
+  permissoesIds: [Int!]
 }
 
 input CreateColaboradorInput {
@@ -199,4 +221,19 @@ input UpdateAgendamentoInput {
   colaboradorId: Int!
   servicoId: Int!
   statusId: Int!
+}
+
+input CreateFeriasInput {
+  descricao: String!
+  data_inicio: DateTime!
+  data_fim: DateTime!
+  colaborador_id: Int!
+}
+
+input UpdateFeriasInput {
+  descricao: String
+  data_inicio: DateTime
+  data_fim: DateTime
+  colaborador_id: Int
+  id: Int!
 }

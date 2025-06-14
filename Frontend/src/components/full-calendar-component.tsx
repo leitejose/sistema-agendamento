@@ -1,31 +1,21 @@
-import { useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
-const FullCalendarComponent = () => {
-  const [events] = useState([
-    { title: "Evento 1", start: new Date(), id: "1" },
-    { title: "Evento 2", start: "2024-12-10", id: "2" },
-  ]);
+interface FullCalendarComponentProps {
+  events: any[];
+  eventContent?: (eventInfo: any) => JSX.Element;
+}
 
-  const handleDateClick = (info: any) => {
-    alert(`Data clicada: ${info.dateStr}`);
-  };
-
-  const handleEventClick = (info: any) => {
-    alert(`Evento clicado: ${info.event.title}`);
-  };
-
+const FullCalendarComponent = ({ events, eventContent }: FullCalendarComponentProps) => {
   return (
     <div className="calendar-container">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
         events={events}
-        dateClick={handleDateClick}
-        eventClick={handleEventClick}
+        eventContent={eventContent}
         editable={true}
         selectable={true}
         locale="pt"

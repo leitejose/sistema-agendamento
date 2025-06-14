@@ -1,4 +1,6 @@
 import React from "react";
+import { useQuery } from "@apollo/client";
+import { GET_AGENDAMENTOS, GET_SERVICOS } from "@/graphql/queries";
 import { BadgeEuro, ShoppingCart, UserPlus, Banknote } from "lucide-react";
 
 type StatCardProps = {
@@ -27,30 +29,79 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => {
 };
 
 export function CardsData() {
+  const { data: agendamentosData, loading } = useQuery(GET_AGENDAMENTOS);
+  const { data: servicosData } = useQuery(GET_SERVICOS);
+
+  // Total em euros
+  const totalEuros = React.useMemo(() => {
+    if (!agendamentosData?.getAgendamentos || !servicosData?.servicos) return 0;
+    return agendamentosData.getAgendamentos.reduce(
+      (sum: number, agendamento: any) => {
+        const servico = servicosData.servicos.find(
+          (s: any) => s.id === agendamento.id_servicos
+        );
+        return sum + (Number(servico?.valor) || 0);
+      },
+      0
+    );
+  }, [agendamentosData, servicosData]);
+
+  // Quantidade total de marcações
+  const quantidade = React.useMemo(() => {
+    if (!agendamentosData?.getAgendamentos) return 0;
+    return agendamentosData.getAgendamentos.length;
+  }, [agendamentosData]);
+
+  // Valor médio por marcação
+  const valorMedio = React.useMemo(() => {
+    if (quantidade === 0) return 0;
+    return totalEuros / quantidade;
+  }, [totalEuros, quantidade]);
+
+  // Quantidade de serviços diferentes
+  const totalServicos = React.useMemo(() => {
+    if (!servicosData?.servicos) return 0;
+    return servicosData.servicos.length;
+  }, [servicosData]);
+
+  // Quantidade de clientes únicos (utentes)
+  // Supondo que cada agendamento tem um id_utente
+  const totalClientes = React.useMemo(() => {
+    if (!agendamentosData?.getAgendamentos) return 0;
+    const clientesSet = new Set(agendamentosData.getAgendamentos.map((a: any) => a.id_utente));
+    return clientesSet.size;
+  }, [agendamentosData]);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
       <StatCard
         title="Marcações em Euros"
-        value="€ 12.584"
+        value={loading ? "..." : `€ ${totalEuros.toLocaleString("pt-PT")}`}
         icon={<BadgeEuro size={24} />}
         color="bg-black"
       />
       <StatCard
-        title="Quantidade em und"
-        value={450}
+        title="Quantidade de Marcações"
+        value={loading ? "..." : quantidade}
         icon={<ShoppingCart size={24} />}
         color="bg-black"
       />
       <StatCard
         title="Valor médio por marcação"
-        value={"€ " + 350}
+        value={loading ? "..." : `€ ${valorMedio.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
         icon={<Banknote size={24} />}
         color="bg-black"
       />
-       <StatCard
-        title="Novos Clientes"
-        value={87}
+      <StatCard
+        title="Clientes únicos"
+        value={loading ? "..." : totalClientes}
         icon={<UserPlus size={24} />}
+        color="bg-black"
+      />
+      <StatCard
+        title="Serviços diferentes"
+        value={loading ? "..." : totalServicos}
+        icon={<ShoppingCart size={24} />}
         color="bg-black"
       />
     </div>

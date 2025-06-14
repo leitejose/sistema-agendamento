@@ -1,7 +1,9 @@
 "use client"
 
+import React from "react";
 import { TrendingUp } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, LabelList, XAxis } from "recharts"
+import { useQuery } from "@apollo/client";
 
 import {
   Card,
@@ -17,14 +19,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-]
+import { GET_AGENDAMENTOS } from "@/graphql/queries";
 
 const chartConfig = {
   desktop: {
@@ -34,11 +29,37 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function BarComponent() {
+  const { data, loading } = useQuery(GET_AGENDAMENTOS);
+
+  // Agrupa marcações por mês
+  const chartData = React.useMemo(() => {
+    if (!data?.getAgendamentos) return [];
+    const counts: Record<string, number> = {};
+    data.getAgendamentos.forEach((agendamento: any) => {
+      const date = new Date(agendamento.data_agendamento);
+      const month = date.toLocaleString("default", { month: "long" });
+      counts[month] = (counts[month] || 0) + 1;
+    });
+    // Ordena os meses corretamente
+    const monthOrder = [
+      "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+      "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+    ];
+    return monthOrder
+      .filter((m) => counts[m])
+      .map((month) => ({
+        month,
+        Marcações: counts[month],
+      }));
+  }, [data]);
+
+  if (loading) return <div>Carregando gráfico...</div>;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Marcações</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardDescription>Marcações por mês</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -61,7 +82,7 @@ export function BarComponent() {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="desktop" fill="var(--color-black)" radius={8}>
+            <Bar dataKey="Marcações" fill="var(--color-black)" radius={8}>
               <LabelList
                 position="top"
                 offset={12}
@@ -78,5 +99,5 @@ export function BarComponent() {
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }

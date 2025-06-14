@@ -13,6 +13,7 @@ import { Edit, Trash2 } from "lucide-react";
 import EditMarkingsDialog from "@/pages/MarkingsScreen/edit-marking-dialog";
 import { z } from "zod";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import React from "react";
 
 const agendamentoSchema = z.object({
   id_utente: z.string().nonempty("O ID do utente é obrigatório."),
@@ -34,6 +35,10 @@ export default function Page() {
   const [dataList, setData] = useState<any[]>([]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentAgendamento, setCurrentAgendamento] = useState<any>(null);
+  const [searchText, setSearchText] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedStatusIds, setSelectedStatusIds] = React.useState<number[]>([]);
+  const [selectedColaboradores, setSelectedColaboradores] = React.useState<number[]>([]);
 
   const [removeAgendamento] = useMutation(REMOVE_AGENDAMENTO, {
     onCompleted: (data) => {
@@ -72,8 +77,14 @@ export default function Page() {
   if (error) return <p>Error: {error.message}</p>;
 
   const handleEdit = (agendamento: any) => {
-    setCurrentAgendamento(agendamento);
-    setIsEditDialogOpen(true);
+    setCurrentAgendamento(null);
+    setIsEditDialogOpen(false);
+
+    setTimeout(() => {
+      setCurrentAgendamento(agendamento);
+      setIsEditDialogOpen(true);
+    }
+    , 0);
   };
 
   const handleDelete = async (agendamentoId: number) => {
@@ -194,7 +205,7 @@ export default function Page() {
                     </SelectItem>
                   ))
               )}
-            </SelectContent>
+            </SelectContent>  
           </Select>
         );
       }
@@ -237,51 +248,91 @@ export default function Page() {
     return timeStr.slice(0, 5);
   }
 
+  const filteredData = dataList.filter((item) => {
+    // Filtro por busca
+    const utente = utentesData?.utentes?.find((u) => u.id === item.id_utente);
+    const nomeUtente = utente?.nome?.toLowerCase() || "";
+    const observacoes = item.observacoes?.toLowerCase() || "";
+    const matchesSearch =
+      nomeUtente.includes(searchText.toLowerCase()) ||
+      observacoes.includes(searchText.toLowerCase());
+
+    // Filtro por data
+    let matchesDate = true;
+    if (selectedDate) {
+      const itemDate = new Date(item.data_agendamento);
+      matchesDate =
+        itemDate.toDateString() === selectedDate.toDateString();
+    }
+
+    const matchesStatus =
+      selectedStatusIds.length === 0 || selectedStatusIds.includes(Number(item.statusId));
+    const matchesColaborador =
+      selectedColaboradores.length === 0 || selectedColaboradores.includes(Number(item.id_colaborador));
+    return matchesSearch && matchesDate && matchesStatus && matchesColaborador;
+  });
+
   return (
     <SidebarProvider>
-      <AppSidebar setData={setData} setSearchText={() => {}} dataList={dataList} />
+     <AppSidebar
+  setData={setData}
+  setSearchText={setSearchText}
+  dataList={dataList}
+  selectedDate={selectedDate}
+  setSelectedDate={setSelectedDate}
+  selectedStatusIds={selectedStatusIds}
+  setSelectedStatusIds={setSelectedStatusIds}
+  loadingColaboradores={loadingColaboradores}
+  colaboradoresData={colaboradoresData}
+  selectedColaboradores={selectedColaboradores}
+  setSelectedColaboradores={setSelectedColaboradores}
+/>
+
       <SidebarInset>
         <Header />
         <main className="p-4">
           <h1 className="text-lg font-bold mb-4">Agendamentos</h1>
-          <DataTable columns={columns} data={dataList} />
+          <DataTable columns={columns} data={filteredData} />
         </main>
       </SidebarInset>
       <EditMarkingsDialog
         isOpen={isEditDialogOpen}
-        onClose={() => setIsEditDialogOpen(false)}
+        onClose={() => {
+          setIsEditDialogOpen(false);
+          setCurrentAgendamento(null);
+        }}
         agendamento={currentAgendamento}
         onSave={(updatedAgendamento) => {
-  const data_agendamento = extractDate(updatedAgendamento.data_agendamento);
-  const hora_inicio = extractTime(updatedAgendamento.hora_inicio);
-  const hora_fim = extractTime(updatedAgendamento.hora_fim);
+          const data_agendamento = extractDate(updatedAgendamento.data_agendamento);
+          const hora_inicio = extractTime(updatedAgendamento.hora_inicio);
+          const hora_fim = extractTime(updatedAgendamento.hora_fim);
 
-  // Valida campos obrigatórios
-  const colaboradorId = Number(updatedAgendamento.id_colaborador);
-  const servicoId = Number(updatedAgendamento.id_servicos);
+          // Valida campos obrigatórios
+          const colaboradorId = Number(updatedAgendamento.id_colaborador);
+          const servicoId = Number(updatedAgendamento.id_servicos);
 
 
-  const input = {
-    id: updatedAgendamento.id,
-    data_agendamento,
-    hora_inicio,
-    hora_fim,
-    observacoes: updatedAgendamento.observacoes,
-    utenteId: Number(updatedAgendamento.id_utente),
-    colaboradorId,
-    servicoId,
-    statusId: Number(updatedAgendamento.statusId),
-  };
+          const input = {
+            id: updatedAgendamento.id,
+            data_agendamento,
+            hora_inicio,
+            hora_fim,
+            observacoes: updatedAgendamento.observacoes,
+            utenteId: Number(updatedAgendamento.id_utente),
+            colaboradorId,
+            servicoId,
+            statusId: Number(updatedAgendamento.statusId),
+          };
 
-  updateAgendamento({
-    variables: {
-      updateAgendamentoInput: input
-    }
-  });
+          updateAgendamento({
+            variables: {
+              updateAgendamentoInput: input
+            }
+          });
 
-  setIsEditDialogOpen(false);
-}}
-
+          setIsEditDialogOpen(false);
+          setCurrentAgendamento(null);
+        }}
       />
     </SidebarProvider>
   );

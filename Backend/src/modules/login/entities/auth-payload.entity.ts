@@ -1,5 +1,5 @@
 import { ObjectType, Field } from '@nestjs/graphql';
-import { Colaborador } from '../../colaboradores/entities/colaborador.entity';
+import { Colaborador } from 'src/modules/colaboradores/entities/colaborador.entity';
 
 @ObjectType()
 export class AuthPayload {

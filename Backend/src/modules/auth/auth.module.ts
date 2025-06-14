@@ -5,11 +5,12 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { AuthService } from './auth.service';
 import { AuthResolver } from './auth.resolver';
 import { PrismaService } from 'prisma/prisma.service';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-secret-key',
+      secret: process.env.JWT_SECRET || 'mmmedicina',
       signOptions: { expiresIn: '1h' },
     }),
     MailerModule.forRoot({
@@ -26,6 +27,12 @@ import { PrismaService } from 'prisma/prisma.service';
       },
     }),
   ],
-  providers: [AuthService, AuthResolver, PrismaService],
+  providers: [
+    AuthService,
+    AuthResolver,
+    PrismaService,
+    JwtStrategy, // <-- Adicione aqui!
+  ],
+  exports: [AuthService, JwtModule], // Exporte AuthService e JwtModule para uso em outros módulos
 })
 export class AuthModule {}

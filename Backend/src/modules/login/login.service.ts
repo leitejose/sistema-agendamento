@@ -1,7 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Colaborador } from '../colaboradores/entities/colaborador.entity';
+import { PrismaService } from 'prisma/prisma.service';
 import { LoginInput } from './dto/login.input';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -10,8 +8,7 @@ import { AuthPayload } from './entities/auth-payload.entity';
 @Injectable()
 export class LoginService {
   constructor(
-    @InjectRepository(Colaborador)
-    private readonly colaboradorRepository: Repository<Colaborador>,
+    private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -20,14 +17,15 @@ export class LoginService {
 
     console.log('Tentando autenticar:', email);
 
-    const colaborador = await this.colaboradorRepository.findOne({
+    const colaborador = await this.prisma.colaborador.findUnique({
       where: { email },
     });
     if (!colaborador) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    if (senha !== colaborador.senha) {
+    // Se usar bcrypt, descomente a linha abaixo:
+    if (!(await bcrypt.compare(senha, colaborador.senha))) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 

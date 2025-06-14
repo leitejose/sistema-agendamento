@@ -68,16 +68,20 @@ export const GET_UTENTES = gql`
 
 /* === CARGOS E PERMISSÕES === */
 export const GET_CARGOS = gql`
-  query GetCargos {
+  query {
     cargos {
       id
       descricao
+      permissoes {
+        id
+        descricao
+      }
     }
   }
 `;
 
 export const GET_PERMISSOES = gql`
-  query GetPermissoes {
+  query {
     permissoes {
       id
       descricao
@@ -92,6 +96,35 @@ export const GET_STATUS = gql`
       id
       descricao
       cor
+    }
+  }
+`;
+
+/* === FÉRIAS === */
+export const GET_FERIAS = gql`
+  query {
+    ferias {
+      id
+      descricao
+      data_inicio
+      data_fim
+      colaborador_id
+    }
+  }
+`;
+
+/* === COLABORADOR LOGADO === */
+export const GET_COLABORADOR_LOGADO = gql`
+  query {
+    meColaborador {
+      id
+      nome
+      email
+      cargo {
+        id
+        descricao
+      }
+      # outros campos se necessário
     }
   }
 `;

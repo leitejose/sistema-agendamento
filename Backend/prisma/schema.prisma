@@ -19,12 +19,15 @@ model Colaborador {
   permissao      Permissao? @relation(fields: [permissaoId], references: [id])
   disponibilidades Disponibilidade[]
   agendamentos   Agendamento[]   @relation("ColaboradorAgendamentos")
+
+  Ferias Ferias[]
 }
 
 model Permissao {
-  id           Int           @id @default(autoincrement())
-  descricao    String
-  colaboradores Colaborador[]
+  id             Int           @id @default(autoincrement())
+  descricao      String
+  colaboradores  Colaborador[]
+  cargos         CargoPermissoes[]
 }
 
 model Utente {
@@ -86,7 +89,31 @@ model Disponibilidade {
 }
 
 model Cargo {
-  id           Int           @id @default(autoincrement())
-  descricao    String
-  colaboradores Colaborador[]
+  id         Int         @id @default(autoincrement())
+  descricao  String
+  permissoes CargoPermissoes[]
+  colaboradores Colaborador[] // <-- Adicione esta linha
+}
+
+// Modelo para a tabela de relação
+model CargoPermissoes {
+  cargoId      Int   @map("cargo_id")
+  permissaoId  Int   @map("permissao_id")
+
+  cargo        Cargo     @relation(fields: [cargoId], references: [id])
+  permissao    Permissao @relation(fields: [permissaoId], references: [id])
+
+  @@id([cargoId, permissaoId])
+  @@map("cargo_permissoes")
+}
+
+model Ferias {
+  id             Int          @id @default(autoincrement())
+  descricao      String
+  data_inicio    DateTime
+  data_fim       DateTime
+  colaborador_id Int
+  colaborador    Colaborador  @relation(fields: [colaborador_id], references: [id])
+
+  @@map("ferias") // nome da tabela no banco, se quiser
 }

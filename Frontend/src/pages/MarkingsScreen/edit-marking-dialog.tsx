@@ -46,9 +46,13 @@ const formatDateForInput = (date: string): string => {
 
 export default function EditMarkingsDialog({
   agendamento,
+  isOpen,
+  onClose,
   onSave,
 }: {
   agendamento: FormData | null;
+  isOpen: boolean;
+  onClose: () => void;
   onSave: (updatedAgendamento: FormData) => void;
 }) {
   const [formData, setFormData] = useState<FormData | null>(null);

@@ -5,6 +5,9 @@ import { CreateColaboradorInput } from './dto/create-colaborador.input';
 import { UpdateColaboradorInput } from './dto/update-colaborador.input';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { UseGuards } from '@nestjs/common';
+import { GqlAuthGuard } from 'src/modules/auth/gql-auth.guard'; // ajuste o caminho conforme seu projeto
+import { CurrentUser } from 'src/modules/auth/current-user.decorator'; // ajuste o caminho conforme seu projeto
 
 @Resolver(() => Colaborador)
 export class ColaboradoresResolver {
@@ -57,5 +60,10 @@ export class ColaboradoresResolver {
     await this.prisma.colaborador.delete({ where: { id } });
 
     return colaborador;
+  }
+
+  @Query(() => Colaborador, { name: 'meColaborador' })
+  async meColaborador() {
+    return this.colaboradoresService.findOne(3); // exemplo com ID fixo
   }
 }

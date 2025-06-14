@@ -74,6 +74,8 @@ export const UPDATE_AGENDAMENTO = gql`
     updateAgendamento(updateAgendamentoInput: $updateAgendamentoInput) {
       id
       id_utente
+      id_colaborador
+      id_servicos
       data_agendamento
       hora_inicio
       hora_fim
@@ -236,5 +238,89 @@ export const DELETE_UTENTE = gql`
     removeUtente(id: $id) {
       id
     }
+  }
+`;
+
+export const CREATE_FERIAS = gql`
+  mutation CreateFerias($data: CreateFeriasInput!) {
+    createFerias(data: $data) {
+      id
+      descricao
+      data_inicio
+      data_fim
+      colaborador_id
+    }
+  }
+`;
+
+export const REMOVE_FERIAS = gql`
+  mutation RemoveFerias($id: Int!) {
+    removeFerias(id: $id) {
+      id
+    }
+  }
+`;
+
+export const UPDATE_FERIAS = gql`
+  mutation UpdateFerias($data: UpdateFeriasInput!) {
+    updateFerias(data: $data) {
+      id
+      descricao
+      data_inicio
+      data_fim
+      colaborador_id
+    }
+  }
+`;
+
+export const CREATE_PERMISSAO = gql`
+  mutation CreatePermissao($createPermissoesInput: CreatePermissoesInput!) {
+    createPermissoes(createPermissoesInput: $createPermissoesInput) {
+      id
+      descricao
+    }
+  }
+`;
+
+export const REMOVE_PERMISSAO = gql`
+  mutation RemovePermissao($id: Int!) {
+    removePermissoes(id: $id) {
+      id
+    }
+  }
+`;
+
+export const UPDATE_PERMISSAO = gql`
+  mutation UpdatePermissao($id: Int!, $updatePermissoesInput: UpdatePermissoesInput!) {
+    updatePermissoes(id: $id, updatePermissoesInput: $updatePermissoesInput) {
+      id
+      descricao
+    }
+  }
+`;
+
+export const CREATE_CARGO = gql`
+  mutation CreateCargo($createCargoInput: CreateCargoInput!) {
+    createCargo(createCargoInput: $createCargoInput) {
+      id
+      descricao
+      permissoes { id descricao }
+    }
+  }
+`;
+
+export const UPDATE_CARGO = gql`
+  mutation UpdateCargo($id: Int!, $updateCargoInput: UpdateCargoInput!) {
+    updateCargo(id: $id, updateCargoInput: $updateCargoInput) {
+      id
+      descricao
+      permissoes { id descricao }
+    }
+  }
+`;
+
+export const REMOVE_CARGO = gql`
+  mutation RemoveCargo($id: Int!) {
+    removeCargo(id: $id) { id }
   }
 `;

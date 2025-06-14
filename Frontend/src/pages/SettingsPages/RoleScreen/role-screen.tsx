@@ -8,36 +8,64 @@ import { DataTable } from "@/components/data-table";
 import { useState } from "react";
 import { Edit, Trash2 } from "lucide-react";
 import { RoleForm } from "./role-form";
+import { useQuery, useMutation } from "@apollo/client";
+import { GET_CARGOS, GET_PERMISSOES } from "@/graphql/queries";
+import { CREATE_CARGO, UPDATE_CARGO, REMOVE_CARGO } from "@/graphql/mutations";
 
 export default function RoleScreen() {
-  const [roles, setRoles] = useState([
-    { id: 1, descricao: "Ginecologista" },
-    { id: 2, descricao: "Enfermeira Obstétrica" },
-    { id: 3, descricao: "Recepcionista" },
-    { id: 4, descricao: "Técnico em Enfermagem" },
-    { id: 5, descricao: "Auxiliar Administrativo" },
-    { id: 6, descricao: "Coordenador de Atendimento" },
-    { id: 7, descricao: "Higienista" },
-  ]);
+  const { data: cargosData, loading: loadingCargos } = useQuery(GET_CARGOS);
+  const { data: permissoesData, loading: loadingPerms } = useQuery(GET_PERMISSOES);
 
-  const handleAddRole = (descricao: string) => {
-    const newRole = {
-      id: roles.length + 1, // Gerar novo ID
-      descricao,
-    };
+  const [createCargo] = useMutation(CREATE_CARGO, { refetchQueries: [{ query: GET_CARGOS }] });
+  const [updateCargo] = useMutation(UPDATE_CARGO, { refetchQueries: [{ query: GET_CARGOS }] });
+  const [removeCargo] = useMutation(REMOVE_CARGO, { refetchQueries: [{ query: GET_CARGOS }] });
 
-    setRoles((prevRoles) => [...prevRoles, newRole]);
+  const cargos = cargosData?.cargos ?? [];
+  const permissoes = permissoesData?.permissoes ?? [];
+
+  const [cargoEditando, setCargoEditando] = useState(null);
+
+  const handleAddRole = async ({ descricao, permissoesIds }) => {
+    await createCargo({
+      variables: {
+        createCargoInput: {
+          descricao,
+          permissoesIds,
+        },
+      },
+    });
   };
 
-  const handleEdit = (role: any) => {
-    console.log("Editando função:", role);
+  const handleEdit = (cargo) => {
+    setCargoEditando(cargo);
   };
 
-  const handleDelete = (roleId: number) => {
+  const handleCancelEdit = () => {
+    setCargoEditando(null);
+  };
+
+  const handleDelete = async (roleId: number) => {
     const confirmed = confirm("Tem certeza que deseja excluir esta função?");
     if (confirmed) {
-      setRoles((prevRoles) => prevRoles.filter((role) => role.id !== roleId));
+      try {
+        await removeCargo({ variables: { id: roleId } });
+      } catch (error: any) {
+        alert("Erro ao excluir função.");
+      }
     }
+  };
+
+  const handleUpdateRole = async ({ id, descricao, permissoesIds }) => {
+    await updateCargo({
+      variables: {
+        id, // id separado
+        updateCargoInput: {
+          descricao,
+          permissoesIds,
+        },
+      },
+    });
+    setCargoEditando(null); // Limpa o estado de edição após atualizar
   };
 
   const columns = [
@@ -50,6 +78,22 @@ export default function RoleScreen() {
       accessorKey: "descricao",
       header: "Descrição",
       cell: (info: { getValue: () => any }) => info.getValue(),
+    },
+    {
+      accessorKey: "permissoes",
+      header: "Permissões",
+      cell: ({ row }: { row: { original: any } }) => (
+        <div className="flex flex-wrap gap-1">
+          {row.original.permissoes.map((perm: any) => (
+            <span
+              key={perm.id}
+              className="bg-gray-200 text-gray-800 px-2 py-1 rounded"
+            >
+              {perm.descricao}
+            </span>
+          ))}
+        </div>
+      ),
     },
     {
       id: "actions",
@@ -80,10 +124,16 @@ export default function RoleScreen() {
         <Header />
         <main className="p-4">
           <div className="pb-4 flex justify-center w-full">
-            <RoleForm onAddRole={handleAddRole} />
+            <RoleForm
+              onAddRole={handleAddRole}
+              onUpdateRole={handleUpdateRole}
+              onCancelEdit={handleCancelEdit}
+              permissoes={permissoes}
+              cargoEditando={cargoEditando}
+            />
           </div>
           <h1 className="text-lg font-bold mb-4">Funções do Consultório</h1>
-          <DataTable columns={columns} data={roles} />
+          <DataTable columns={columns} data={cargos} />
         </main>
       </SidebarInset>
     </SidebarProvider>

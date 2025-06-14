@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
@@ -16,19 +15,10 @@ import { LoginModule } from './modules/login/login.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AgendamentosModule } from './modules/agendamentos/agendamentos.module';
 import { StatusAgendamentoModule } from './modules/status/status.module';
+import { FeriasModule } from './modules/ferias/ferias.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: 'joseclevina',
-      database: 'appointments_db',
-      autoLoadEntities: true,
-      synchronize: true,
-    }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
@@ -44,8 +34,9 @@ import { StatusAgendamentoModule } from './modules/status/status.module';
     AuthModule,
     AgendamentosModule,
     StatusAgendamentoModule,
+    FeriasModule,
   ],
   controllers: [AppController],
   providers: [AppService, CargoService],
 })
-export class AppModule {} // <------ Certifique-se de que essa linha existe!
+export class AppModule {}
