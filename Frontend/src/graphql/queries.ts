@@ -37,17 +37,22 @@ export const GET_COLABORADORES = gql`
       descricao
       email
       telemovel
-      permissao {
-        id
-        descricao
-      }
+      imagem_url 
+      cor
       cargo {
         id
         descricao
       }
+      disponibilidades {
+        id
+        dia_da_semana
+        hora_inicio
+        hora_fim
+      }
     }
   }
 `;
+
 
 /* === UTENTES === */
 export const GET_UTENTES = gql`
@@ -125,6 +130,29 @@ export const GET_COLABORADOR_LOGADO = gql`
         descricao
       }
       # outros campos se necessário
+    }
+  }
+`;
+
+/* === DISPONIBILIDADES === */
+export const GET_DISPONIBILIDADES = gql`
+  query {
+    disponibilidades {
+      id
+      id_colaborador
+      dia_da_semana
+      hora_inicio
+      hora_fim
+    }
+  }
+`;
+
+/* === HORÁRIOS DISPONÍVEIS === */
+export const GET_HORARIOS_DISPONIVEIS = gql`
+  query HorariosDisponiveis($id_colaborador: Int!, $data: String!) {
+    horariosDisponiveis(id_colaborador: $id_colaborador, data: $data) {
+      horarios
+      mensagem
     }
   }
 `;

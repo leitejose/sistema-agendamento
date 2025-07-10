@@ -12,10 +12,13 @@ import { PrismaModule } from 'prisma/prisma.module';
 import { ColaboradoresModule } from './modules/colaboradores/colaborador.module';
 import { UtentesModule } from './modules/utentes/utentes.module';
 import { LoginModule } from './modules/login/login.module';
-import { AuthModule } from './modules/auth/auth.module';
+import { AuthModule } from './modules/reset/auth.module';
 import { AgendamentosModule } from './modules/agendamentos/agendamentos.module';
 import { StatusAgendamentoModule } from './modules/status/status.module';
 import { FeriasModule } from './modules/ferias/ferias.module';
+import { UploadController } from './upload/upload.controller';
+import { DisponibilidadesModule } from './modules/disponibilidades/disponibilidades.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -35,8 +38,22 @@ import { FeriasModule } from './modules/ferias/ferias.module';
     AgendamentosModule,
     StatusAgendamentoModule,
     FeriasModule,
+    DisponibilidadesModule,
+    MailerModule.forRoot({
+      transport: {
+        host: process.env.EMAIL_HOST,
+        port: parseInt(process.env.EMAIL_PORT || '587'),
+        auth: {
+          user: process.env.MAIL_USER,
+          pass: process.env.MAIL_PASS,
+        },
+      },
+      defaults: {
+        from: process.env.EMAIL_FROM,
+      },
+    }),
   ],
-  controllers: [AppController],
+  controllers: [AppController, UploadController],
   providers: [AppService, CargoService],
 })
 export class AppModule {}

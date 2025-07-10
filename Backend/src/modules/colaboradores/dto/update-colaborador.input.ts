@@ -12,8 +12,11 @@ export class UpdateColaboradorInput {
   telemovel: string;
 
   @Field(() => Int)
-  id_cargo: number;
+  cargoId: number; // Padronize conforme o frontend
 
-  @Field(() => Int)
-  id_permissao: number;
+  @Field({ nullable: true })
+  imagem_url?: string;
+
+  @Field()
+  cor: string;
 }

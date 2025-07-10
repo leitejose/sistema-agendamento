@@ -75,7 +75,18 @@ export default function EditMarkingsDialog({
         statusId: String(agendamento.statusId ?? ""),
         data_agendamento: formatDateForInput(agendamento.data_agendamento),
       });
-      setIsDialogOpen(true);
+
+      // Pega o horário no formato "HH:MM" do campo hora_inicio
+      const hora = agendamento.hora_inicio;
+      let horaFormatada = "";
+      if (hora) {
+        // Suporta formatos "2024-06-27T09:00:00.000Z" ou "09:00:00"
+        const match = hora.match(/(\d{2}):(\d{2})/);
+        if (match) {
+          horaFormatada = `${match[1]}:${match[2]}`;
+        }
+      }
+      setSelectedTime(horaFormatada);
     }
   }, [agendamento]);
 
@@ -169,7 +180,7 @@ setIsDialogOpen(false);
   const availableTimes = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Editar Agendamento</DialogTitle>

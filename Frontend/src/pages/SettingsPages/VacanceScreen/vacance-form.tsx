@@ -76,7 +76,7 @@ export function VacanceForm({
       </CardHeader>
       <CardContent>
         <form>
-          <div className="grid w-full items-center gap-4">
+          <div className="grid items-center gap-4">
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="name">Descrição</Label>
               <Input

@@ -24,10 +24,13 @@ import {
   GET_COLABORADORES,
   GET_SERVICOS,
   GET_STATUS,
+  GET_AGENDAMENTOS,
+  GET_FERIAS,
 } from "@/graphql/queries";
 import CreateUtenteDialog from "../UtentesScreen/create-utente-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { CREATE_AGENDAMENTO } from "@/graphql/mutations";
+import { useNavigate } from "react-router-dom";
 
 // Tipagem do estado do formulário
 type FormData = {
@@ -42,11 +45,13 @@ type FormData = {
 };
 
 export default function CreateMarkingsDialog({
-  children,
-  setData,
+  open,
+  onOpenChange,
+  onAgendamentoCriado, // <-- adicione aqui
 }: {
-  children: React.ReactNode;
-  setData: React.Dispatch<React.SetStateAction<any[]>>;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAgendamentoCriado?: (novo: any) => void; // <-- adicione aqui
 }) {
   const today = new Date().toISOString().split("T")[0]; // Formato de data no formato 'YYYY-MM-DD'
 
@@ -63,14 +68,19 @@ export default function CreateMarkingsDialog({
 
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [utenteInfo, setUtenteInfo] = useState<{ email: string; telemovel: string } | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
 
   const { data: utentesData, loading: utentesLoading } = useQuery(GET_UTENTES);
   const { data: colaboradoresData, loading: colaboradoresLoading } = useQuery(GET_COLABORADORES);
   const { data: servicosData, loading: servicosLoading } = useQuery(GET_SERVICOS);
   const { data: statusData, loading: statusLoading } = useQuery(GET_STATUS);
+  const { data: agendamentosData } = useQuery(GET_AGENDAMENTOS);
+  const { data: feriasData } = useQuery(GET_FERIAS);
 
-  const [createAgendamento, { loading: createLoading, error: createError }] = useMutation(CREATE_AGENDAMENTO);
+  const [createAgendamento, { loading: createLoading, error: createError }] = useMutation(CREATE_AGENDAMENTO, {
+    refetchQueries: [{ query: GET_AGENDAMENTOS }],
+  });
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (statusData?.statusAgendamentos?.length) {
@@ -100,6 +110,94 @@ export default function CreateMarkingsDialog({
       }
     }
   }, [formData.id_utente, utentesData]);
+
+useEffect(() => {
+  if (!colaboradoresData || !formData.id_colaborador || !formData.data_agendamento) {
+    setAvailableTimes([]);
+    return;
+  }
+
+  // Verificação de férias ANTES de calcular horários
+  const feriasColaborador = (feriasData?.ferias || []).filter(
+    (f: any) => f.colaborador_id.toString() === formData.id_colaborador.toString()
+  );
+  const dataSelecionada = new Date(formData.data_agendamento);
+  const emFerias = feriasColaborador.some((f: any) => {
+    const inicio = new Date(f.data_inicio);
+    const fim = new Date(f.data_fim);
+    return dataSelecionada >= inicio && dataSelecionada <= fim;
+  });
+
+  if (emFerias) {
+    setAvailableTimes([]);
+    return; // <-- Sai do useEffect, impedindo geração de horários
+  }
+
+  const colaborador = colaboradoresData.colaboradores.find(
+    (c: any) => c.id === formData.id_colaborador
+  );
+
+  if (colaborador && colaborador.disponibilidades) {
+    let diaSemanaJS = new Date(formData.data_agendamento).getDay();
+    let diaSemana = diaSemanaJS === 0 ? 6 : diaSemanaJS - 1;
+
+    const dispDia = colaborador.disponibilidades.filter(
+      (d: any) => Number(d.dia_da_semana) === Number(diaSemana)
+    );
+
+    const horarios: string[] = [];
+    dispDia.forEach((disp: any) => {
+      const inicio = disp.hora_inicio.substring(11, 16);
+      const fim = disp.hora_fim.substring(11, 16);
+      let [h, m] = inicio.split(":").map(Number);
+      const [hFim, mFim] = fim.split(":").map(Number);
+
+      while (h < hFim || (h === hFim && m < mFim)) {
+        horarios.push(`${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`);
+        m += 30;
+        if (m >= 60) {
+          h += 1;
+          m = m % 60;
+        }
+      }
+    });
+
+    const agendamentosDia = (agendamentosData?.getAgendamentos || []).filter(
+      (a: any) =>
+        a.id_colaborador.toString() === formData.id_colaborador.toString() &&
+        a.data_agendamento.slice(0, 10) === formData.data_agendamento
+    );
+
+    const horariosOcupados = new Set(
+      agendamentosDia.map((a: any) => {
+        const date = new Date(a.hora_inicio);
+        const hh = date.getUTCHours().toString().padStart(2, "0");
+        const mm = date.getUTCMinutes().toString().padStart(2, "0");
+        return `${hh}:${mm}`;
+      })
+    );
+
+    const horariosDisponiveis = horarios.filter((h) => !horariosOcupados.has(h));
+    setAvailableTimes(horariosDisponiveis);
+  } else {
+    setAvailableTimes([]);
+  }
+}, [colaboradoresData, feriasData, formData.id_colaborador, formData.data_agendamento, agendamentosData]);
+
+  // Verificação de férias ANTES de calcular horários
+  let emFerias = false;
+  if (feriasData && formData.id_colaborador && formData.data_agendamento) {
+    const feriasColaborador = (feriasData.ferias || []).filter(
+      (f: any) =>
+        f.colaborador_id.toString() === formData.id_colaborador.toString()
+    );
+    const dataSelecionada = new Date(formData.data_agendamento);
+    emFerias = feriasColaborador.some((f: any) => {
+      const inicio = new Date(f.data_inicio);
+      const fim = new Date(f.data_fim);
+      return dataSelecionada >= inicio && dataSelecionada <= fim;
+    });
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -162,24 +260,19 @@ export default function CreateMarkingsDialog({
     }
 
     try {
-      // Garanta que hora_inicio e hora_fim estejam no formato correto
       const inicio = formData.hora_inicio.trim();
       const fim = formData.hora_fim ? formData.hora_fim.trim() : null;
-
-      console.log("Valores de hora para processamento:", { inicio, fim });
 
       const formattedData = {
         utenteId: parseInt(formData.id_utente),
         colaboradorId: parseInt(formData.id_colaborador),
         servicoId: parseInt(formData.id_servicos),
-        data_agendamento: formData.data_agendamento, // envie apenas a data sem converter
-        hora_inicio: inicio, // envie apenas a hora sem converter
+        data_agendamento: formData.data_agendamento,
+        hora_inicio: inicio,
         hora_fim: fim || null,
         statusId: parseInt(formData.statusId),
         observacoes: formData.observacoes || "",
       };
-
-      console.log("Dados formatados para envio:", formattedData);
 
       const { data } = await createAgendamento({
         variables: {
@@ -187,27 +280,38 @@ export default function CreateMarkingsDialog({
         },
       });
 
-      console.log("Agendamento criado com sucesso:", data);
-      setData((prev) => [...prev, data.createAgendamento]);
-      setIsDialogOpen(false);
+      if (onAgendamentoCriado && data?.createAgendamento) {
+        onAgendamentoCriado(data.createAgendamento);
+      }
+
+      // Limpa o formulário e o horário selecionado
+      setFormData({
+        id_utente: "",
+        id_colaborador: "",
+        id_servicos: "",
+        data_agendamento: today,
+        hora_inicio: "",
+        hora_fim: "",
+        statusId: "1",
+        observacoes: "",
+      });
+      setSelectedTime(null);
+
+      onOpenChange(false);
     } catch (error) {
       console.error("Erro ao criar agendamento:", error);
     }
   };
 
   const handleAddUtente = () => {
-    console.log("Adicionar novo utente");
+    navigate("/utentes-screen");
   };
 
-  const availableTimes = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
+  const availableTimesList = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
 
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Novo Agendamento</DialogTitle>
@@ -274,19 +378,27 @@ export default function CreateMarkingsDialog({
             <div>
               <Label>Horários Disponíveis</Label>
               <div className="flex flex-wrap gap-2">
-                {availableTimes.map((time) => (
-                  <Card
-                    key={time}
-                    onClick={() => handleTimeSelect(time)}
-                    className={`cursor-pointer hover:shadow-md ${
-                      selectedTime === time ? "border-2 border-green-500 bg-green-400" : "bg-green-300"
-                    }`}
-                  >
-                    <CardContent className="p-2">
-                      <Button variant="none" size="sm">{time}</Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                {availableTimes.length === 0 && emFerias ? (
+                  <span className="text-red-500">
+                    O médico está indisponível para esta data (férias).
+                  </span>
+                ) : availableTimes.length === 0 ? (
+                  <span className="text-muted-foreground">Nenhum horário disponível</span>
+                ) : (
+                  availableTimes.map((time) => (
+                    <Card
+                      key={time}
+                      onClick={() => handleTimeSelect(time)}
+                      className={`cursor-pointer hover:shadow-md ${
+                        selectedTime === time ? "border-2 border-green-500 bg-green-400" : "bg-green-300"
+                      }`}
+                    >
+                      <CardContent className="p-2">
+                        <Button variant="none" size="sm">{time}</Button>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -305,19 +417,23 @@ export default function CreateMarkingsDialog({
                     {utentesLoading ? (
                       <SelectItem value="" disabled>Carregando...</SelectItem>
                     ) : (
-                      utentesData?.utentes.map((utente: any) => (
-                        <SelectItem key={utente.id} value={utente.id}>{utente.nome}</SelectItem>
-                      ))
+                      utentesData?.utentes
+                        ?.filter((utente: any) => utente && utente.nome)
+                        .map((utente: any) => (
+                          <SelectItem key={utente.id} value={utente.id}>
+                            {utente.nome}
+                          </SelectItem>
+                        ))
                     )}
                   </SelectContent>
                 </Select>
               </div>
               <div className="col-span-4 text-right">
-                <CreateUtenteDialog>
+               
                   <Button variant="outline" size="sm" onClick={handleAddUtente} className="mt-2">
                     Adicionar Novo Utente
                   </Button>
-                </CreateUtenteDialog>
+              
               </div>
             </div>
 

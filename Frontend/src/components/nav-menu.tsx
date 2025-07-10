@@ -1,9 +1,18 @@
-import React from "react";
 import { NavLink } from "react-router-dom";
+import { TiHome } from "react-icons/ti";
+import { FaCalendarCheck } from "react-icons/fa";
+import { BsFileEarmarkBarGraphFill } from "react-icons/bs";
+import { IoMdSettings } from "react-icons/io";
+
+
+
+
+
+
 
 export function MenuComponent() {
   return (
-    <div className="flex w-full justify-center">
+    <div className="flex justify-end">
       <nav className="flex space-x-4 p-2 rounded-sm">
         <NavLink
           to="/home-screen"
@@ -13,7 +22,8 @@ export function MenuComponent() {
             }`
           }
         >
-          Home
+          <TiHome 
+          size={25} />
         </NavLink>
         <NavLink
           to="/markings-screen"
@@ -23,37 +33,8 @@ export function MenuComponent() {
             }`
           }
         >
-          Marcações
-        </NavLink>
-        <NavLink
-          to="/utentes-screen"
-          className={({ isActive }) =>
-            `block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors ${
-              isActive ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-            }`
-          }
-        >
-          Utentes
-        </NavLink>
-        <NavLink
-          to="/collaborators-screen"
-          className={({ isActive }) =>
-            `block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors ${
-              isActive ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-            }`
-          }
-        >
-          Colaboradores
-        </NavLink>
-        <NavLink
-          to="/services-screen"
-          className={({ isActive }) =>
-            `block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors ${
-              isActive ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-            }`
-          }
-        >
-          Serviços
+          <FaCalendarCheck 
+          size={25} />
         </NavLink>
         <NavLink
           to="/statistics-screen"
@@ -63,7 +44,8 @@ export function MenuComponent() {
             }`
           }
         >
-          Estatistica
+          <BsFileEarmarkBarGraphFill 
+          size={25} />
         </NavLink>
         <NavLink
           to="/vacance-screen"
@@ -73,7 +55,9 @@ export function MenuComponent() {
             }`
           }
         >
-          Definições
+          <IoMdSettings 
+          size={25} />
+
         </NavLink>
       </nav>
     </div>

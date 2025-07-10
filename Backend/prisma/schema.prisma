@@ -7,113 +7,121 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Colaborador {
-  id             Int      @id @default(autoincrement())
-  descricao      String
-  email          String   @unique
-  telemovel      String
-  senha          String
-  cargoId        Int? // Use diretamente o nome da coluna no banco de dados
-  cargo          Cargo?   @relation(fields: [cargoId], references: [id])
-  permissaoId    Int? // Use diretamente o nome da coluna no banco de dados
-  permissao      Permissao? @relation(fields: [permissaoId], references: [id])
-  disponibilidades Disponibilidade[]
-  agendamentos   Agendamento[]   @relation("ColaboradorAgendamentos")
-
-  Ferias Ferias[]
-}
-
-model Permissao {
-  id             Int           @id @default(autoincrement())
-  descricao      String
-  colaboradores  Colaborador[]
-  cargos         CargoPermissoes[]
-}
-
-model Utente {
-  id           Int             @id @default(autoincrement())
-  nome         String
-  email        String
-  telemovel    String?          // Campo opcional (aceita null)
-  morada       String?
-  concelho     String?
-  distrito     String?
-  pais         String?
-  codigo_postal String?
-  agendamentos Agendamento[]   @relation("UtenteAgendamentos") // Adicione este campo
-}
-
-model Servico {
-  id              Int             @id @default(autoincrement())
-  descricao       String          @db.VarChar(45)
-  valor           Decimal         @db.Decimal(10, 2)
-  duracao         Float
-  agendamentos    Agendamento[]   @relation("ServicoAgendamentos")
-}
-
-model Agendamento {
-  id               Int               @id @default(autoincrement())
-  id_utente        Int
-  id_colaborador   Int
-  id_servicos      Int
-  data_agendamento DateTime
-  hora_inicio      DateTime
-  hora_fim         DateTime?
-  statusId         Int               // Relacionamento com a tabela StatusAgendamento
-  observacoes      String?
-  criado_em        DateTime          @default(now())
-  atualizado_em    DateTime          @updatedAt
-
-  utente           Utente            @relation("UtenteAgendamentos", fields: [id_utente], references: [id], map: "FK_Agendamento_Utente")
-  colaborador      Colaborador       @relation("ColaboradorAgendamentos", fields: [id_colaborador], references: [id], map: "FK_Agendamento_Colaborador")
-  servico          Servico           @relation("ServicoAgendamentos", fields: [id_servicos], references: [id], map: "FK_Agendamento_Servico")
-  status           StatusAgendamento @relation(fields: [statusId], references: [id]) // Relacionamento com StatusAgendamento
-}
-
 model StatusAgendamento {
-  id        Int      @id @default(autoincrement())
-  descricao String
-  cor       String
-  agendamentos Agendamento[] // Relacionamento com agendamentos
+  id          Int           @id @default(autoincrement())
+  descricao   String
+  cor         String
+  agendamento agendamento[]
 
-  @@map("status_agendamento") // Nome da tabela no banco
+  @@map("status_agendamento")
 }
 
-
-model Disponibilidade {
-  id              Int         @id @default(autoincrement())
-  id_colaborador  Int
-  dia_da_semana   DateTime
-  hora_inicio     DateTime
-  colaborador     Colaborador @relation(fields: [id_colaborador], references: [id])
-}
-
-model Cargo {
-  id         Int         @id @default(autoincrement())
-  descricao  String
-  permissoes CargoPermissoes[]
-  colaboradores Colaborador[] // <-- Adicione esta linha
-}
-
-// Modelo para a tabela de relação
 model CargoPermissoes {
-  cargoId      Int   @map("cargo_id")
-  permissaoId  Int   @map("permissao_id")
-
-  cargo        Cargo     @relation(fields: [cargoId], references: [id])
-  permissao    Permissao @relation(fields: [permissaoId], references: [id])
+  cargoId     Int       @map("cargo_id")
+  permissaoId Int       @map("permissao_id")
+  cargo       cargo     @relation(fields: [cargoId], references: [id], onDelete: Cascade, map: "FK_57b474c85ecbfcd6cc421f46e81")
+  permissao   permissao @relation(fields: [permissaoId], references: [id], onDelete: Cascade, map: "FK_cee926c9f8446750c17f7d6356b")
 
   @@id([cargoId, permissaoId])
+  @@index([cargoId], map: "IDX_57b474c85ecbfcd6cc421f46e8")
+  @@index([permissaoId], map: "IDX_cee926c9f8446750c17f7d6356")
   @@map("cargo_permissoes")
 }
 
 model Ferias {
-  id             Int          @id @default(autoincrement())
-  descricao      String
-  data_inicio    DateTime
-  data_fim       DateTime
+  id             Int         @id @default(autoincrement())
+  descricao      String      @db.VarChar(255)
+  data_inicio    DateTime    @db.Date
+  data_fim       DateTime    @db.Date
   colaborador_id Int
-  colaborador    Colaborador  @relation(fields: [colaborador_id], references: [id])
+  created_at     DateTime?   @default(now()) @db.DateTime(0)
+  colaborador    colaborador @relation(fields: [colaborador_id], references: [id], map: "fk_ferias_colaborador")
 
-  @@map("ferias") // nome da tabela no banco, se quiser
+  @@index([colaborador_id], map: "fk_ferias_colaborador")
+  @@map("ferias")
+}
+
+model agendamento {
+  id                 Int               @id @default(autoincrement())
+  id_utente          Int
+  id_servicos        Int
+  id_colaborador     Int
+  atualizado_em      DateTime
+  criado_em          DateTime          @default(now())
+  data_agendamento   DateTime
+  hora_fim           DateTime?
+  hora_inicio        DateTime
+  observacoes        String?
+  statusId           Int
+  status_agendamento StatusAgendamento @relation(fields: [statusId], references: [id], map: "Agendamento_statusId_fkey")
+  colaborador        colaborador       @relation(fields: [id_colaborador], references: [id], map: "FK_Agendamento_Colaborador")
+  servico            servico           @relation(fields: [id_servicos], references: [id], map: "FK_Agendamento_Servico")
+  utente             utente            @relation(fields: [id_utente], references: [id], map: "FK_Agendamento_Utente")
+
+  @@index([statusId], map: "Agendamento_statusId_fkey")
+  @@index([id_colaborador], map: "FK_Agendamento_Colaborador")
+  @@index([id_servicos], map: "FK_Agendamento_Servico")
+  @@index([id_utente], map: "FK_Agendamento_Utente")
+}
+
+model cargo {
+  id          Int               @id @default(autoincrement())
+  descricao   String            @db.VarChar(255)
+  permissoes  CargoPermissoes[]
+  colaborador colaborador[]
+}
+
+model colaborador {
+  id              Int               @id @default(autoincrement())
+  cargoId         Int?
+  descricao       String            @db.VarChar(255)
+  email           String            @unique(map: "IDX_2c7cab1392c28313e5880d941b") @db.VarChar(255)
+  telemovel       String            @db.VarChar(255)
+  senha           String            @db.VarChar(255)
+  imagem_url      String?           @db.VarChar(255)
+  cor             String?           @db.VarChar(22)
+  agendamento     agendamento[]
+  cargo           cargo?            @relation(fields: [cargoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_084fb63ed0f5810c87764c3987c")
+  disponibilidade disponibilidade[]
+  Ferias          Ferias[]
+
+  @@index([cargoId], map: "FK_084fb63ed0f5810c87764c3987c")
+}
+
+model disponibilidade {
+  id             Int         @id @default(autoincrement())
+  id_colaborador Int
+  dia_da_semana  Int         @db.TinyInt
+  hora_inicio    DateTime    @db.Time(0)
+  hora_fim       DateTime    @db.Time(0)
+  colaborador    colaborador @relation(fields: [id_colaborador], references: [id], map: "Disponibilidade_id_colaborador_fkey")
+
+  @@index([id_colaborador], map: "Disponibilidade_id_colaborador_fkey")
+}
+
+model permissao {
+  id        Int               @id @default(autoincrement())
+  descricao String            @db.VarChar(255)
+  cargos    CargoPermissoes[]
+}
+
+model servico {
+  id          Int           @id @default(autoincrement())
+  descricao   String        @db.VarChar(45)
+  valor       Decimal       @db.Decimal(10, 2)
+  duracao     Float
+  agendamento agendamento[]
+}
+
+model utente {
+  id            Int           @id @default(autoincrement())
+  nome          String
+  email         String
+  telemovel     String?
+  distrito      String?
+  pais          String?
+  codigo_postal String?
+  concelho      String?
+  morada        String?
+  agendamento   agendamento[]
 }

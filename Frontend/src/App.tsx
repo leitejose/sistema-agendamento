@@ -15,6 +15,9 @@ import VacanceScreen from "./pages/SettingsPages/VacanceScreen/vacance-screen";
 import RoleScreen from "./pages/SettingsPages/RoleScreen/role-screen";
 import PermissionScreen from "./pages/SettingsPages/PermissionScreen/permission-screen";
 import MarkingsScreen from "./pages/MarkingsScreen/markings-screen";
+import PdfGenerate from "./pages/MarkingsScreen/PdfGenerate/pdf-generate";
+import PdfCliente from "./pages/UtentesScreen/PdfGenerate/pdf-cliente";
+import DisponibilidadeScreen from "./pages/SettingsPages/availabilityScreen/availability-screen";
 
 const App = () => {
   return (
@@ -27,6 +30,8 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/recover-account" element={<RecoverAccount />} />
             <Route path="/new-password" element={<NewPassword />} />
+            <Route path="/relatorio-pdf" element={<PdfGenerate />} />
+            <Route path="/pdf-cliente/:id" element={<PdfCliente />} />
 
             {/* Rotas privadas */}
             <Route
@@ -99,6 +104,15 @@ const App = () => {
                 <PrivateRoute>
                   <PermissionScreen />
                 </PrivateRoute>
+              }
+            />
+            <Route
+              path="/availability-screen"
+              element={
+                <PrivateRoute>
+                  < DisponibilidadeScreen/>
+                </PrivateRoute>
+                
               }
             />
           </Routes>

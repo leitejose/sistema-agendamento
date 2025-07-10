@@ -1,7 +1,19 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { Field, Int, InputType, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class Disponibilidade {
-  @Field(() => Int, { description: 'Example field (placeholder)' })
-  exampleField: number;
+  @Field(() => Int)
+  id: number;
+
+  @Field(() => Int)
+  id_colaborador: number;
+
+  @Field(() => Int)
+  dia_da_semana: number;
+
+  @Field(() => Date)
+  hora_inicio: Date;
+
+  @Field(() => Date)
+  hora_fim: Date;
 }

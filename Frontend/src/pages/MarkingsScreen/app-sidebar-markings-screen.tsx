@@ -12,12 +12,11 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { SearchForm } from "./markings-search-form";
+
 import CreateMarkingsDialog from "@/pages/MarkingsScreen/create-markings-dialog";
 import { DatePicker } from "@/components/date-picker";
 import { useQuery } from "@apollo/client";
 import { GET_STATUS } from "@/graphql/queries";
-import { Button } from "@/components/ui/button";
 import { StatusFilter } from "./Components/StatusFilter";
 import { ColaboradoresFilter } from "./Components/CollaboratorsFilter";
 import { ExportPDFButton } from "./Components/ExportPDFButton";
@@ -37,6 +36,8 @@ export function AppSidebar({
   colaboradoresData,
   servicosData,
   utentesData,
+  selectedDay,
+  setSelectedDay,
 }: {
   setData: React.Dispatch<React.SetStateAction<any[]>>,
   setSearchText: React.Dispatch<React.SetStateAction<string>>,
@@ -65,9 +66,18 @@ export function AppSidebar({
       <SidebarHeader className="h-16 border-b border-sidebar-border">
         <NavUser user={{ name: "Carlos Sousa", email: "carlos@example.com", avatar: "/avatars/shadcn.jpg" }} />
       </SidebarHeader>
-      <SidebarContent>
-        <SearchForm className="pt-4" setSearchText={setSearchText} />
-        <DatePicker selected={selectedDate} onChange={setSelectedDate} />
+      <SidebarContent >
+        <DatePicker
+      
+  selected={selectedDay}
+  onChange={(date) => {
+    setSelectedDay(date);
+    if (date) {
+      setSelectedMonth(date.getMonth());
+      setSelectedYear(date.getFullYear());
+    }
+  }}
+/>
         <SidebarSeparator className="mx-0" />
         <StatusFilter
           statusData={statusData}
@@ -87,7 +97,7 @@ export function AppSidebar({
           setCollapsed={setColabCollapsed}
         />
         <SidebarSeparator className="mx-0" />
-        <div className="p-4">
+        <div className="flex items-center justify-center px-4">
          <ExportPDFButton
   dataList={dataList}
   utentes={utentesData?.utentes ?? []} // ✅ corrigido
@@ -100,7 +110,7 @@ export function AppSidebar({
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <CreateMarkingsDialog setData={setData}>
+            <CreateMarkingsDialog setData={setData} >
               <SidebarMenuButton>
                 <Plus />
                 Nova Marcação

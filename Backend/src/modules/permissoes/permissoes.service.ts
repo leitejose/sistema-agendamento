@@ -14,15 +14,12 @@ export class PermissoesService {
   }
 
   async findAll() {
-    return this.prisma.permissao.findMany({
-      include: { colaboradores: true },
-    });
+    return this.prisma.permissao.findMany();
   }
 
   async findOne(id: number) {
     const permissao = await this.prisma.permissao.findUnique({
       where: { id },
-      include: { colaboradores: true },
     });
 
     if (!permissao) {

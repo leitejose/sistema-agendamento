@@ -1,13 +1,19 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Int,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { ColaboradoresService } from './colaborador.service';
 import { Colaborador } from './entities/colaborador.entity';
 import { CreateColaboradorInput } from './dto/create-colaborador.input';
 import { UpdateColaboradorInput } from './dto/update-colaborador.input';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { UseGuards } from '@nestjs/common';
-import { GqlAuthGuard } from 'src/modules/auth/gql-auth.guard'; // ajuste o caminho conforme seu projeto
-import { CurrentUser } from 'src/modules/auth/current-user.decorator'; // ajuste o caminho conforme seu projeto
+import { Disponibilidade } from '../disponibilidades/entities/disponibilidade.entity';
 
 @Resolver(() => Colaborador)
 export class ColaboradoresResolver {
@@ -16,10 +22,11 @@ export class ColaboradoresResolver {
     private readonly prisma: PrismaService,
   ) {}
 
-  @Mutation(() => Colaborador) // Altere o tipo de retorno para Colaborador
+  @Mutation(() => Colaborador)
   async createColaborador(
     @Args('createColaboradorInput') input: CreateColaboradorInput,
   ) {
+    // input.imagem_url já vem do frontend (após upload REST)
     const hashedPassword = await bcrypt.hash(input.senha, 10);
     return this.colaboradoresService.create({
       ...input,
@@ -43,12 +50,18 @@ export class ColaboradoresResolver {
     @Args('updateColaboradorInput')
     updateColaboradorInput: UpdateColaboradorInput,
   ) {
-    console.log('Dados recebidos no backend:', { id, updateColaboradorInput });
-    return this.colaboradoresService.update(id, updateColaboradorInput);
+    // input.imagem_url já vem do frontend (após upload REST)
+    return this.colaboradoresService.update(id, {
+      ...updateColaboradorInput,
+    });
   }
 
   @Mutation(() => Colaborador)
-  async removeColaborador(@Args('id') id: number): Promise<Colaborador> {
+  async removeColaborador(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<Colaborador> {
+    console.log('ID recebido para remoção:', id); // <-- Adicione esta linha
+
     const colaborador = await this.prisma.colaborador.findUnique({
       where: { id },
     });
@@ -65,5 +78,12 @@ export class ColaboradoresResolver {
   @Query(() => Colaborador, { name: 'meColaborador' })
   async meColaborador() {
     return this.colaboradoresService.findOne(3); // exemplo com ID fixo
+  }
+
+  @ResolveField('disponibilidades', (returns) => [Disponibilidade])
+  async getDisponibilidades(@Parent() colaborador: Colaborador) {
+    return this.prisma.disponibilidade.findMany({
+      where: { id_colaborador: colaborador.id },
+    });
   }
 }

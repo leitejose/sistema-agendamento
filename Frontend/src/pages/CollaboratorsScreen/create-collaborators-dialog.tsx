@@ -1,14 +1,16 @@
-import { useState } from "react";
+import * as React from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -16,217 +18,203 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useQuery } from "@apollo/client";
+import { GET_CARGOS} from "@/graphql/queries";
+import { ColorPicker } from "@/components/ColorPicker";
 
-import { useQuery, useMutation } from "@apollo/client";
-import { GET_CARGOS, GET_PERMISSOES } from "@/graphql/queries";
-import { CREATE_COLABORADOR } from "@/graphql/mutations";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-
-export default function CreateCollaboratorsDialog({
-  children,
-  setData,
-  isOpen,
-  setIsOpen,
+export function ColaboradorForm({
+  onSubmit,
+  initialData,
+  onCancel,
 }: {
-  children: React.ReactNode;
-  setData: React.Dispatch<React.SetStateAction<any[]>>; // Certifique-se de que setData seja uma função válida
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  onSubmit: (colab: any) => void;
+  initialData?: any;
+  onCancel?: () => void;
 }) {
-  // Estado para os dados do formulário
-  const [formData, setFormData] = useState({
-    descricao: "",
-    email: "",
-    telemovel: "",
-    cargoId: null as number | null,
-    permissaoId: null as number | null,
-    senha: "",
-  });
+  const [descricao, setDescricao] = useState(initialData?.descricao || "");
+  const [email, setEmail] = useState(initialData?.email || "");
+  const [telemovel, setTelemovel] = useState(initialData?.telemovel || "");
+  const [cargoId, setCargoId] = useState(initialData?.cargoId || "");
+ const [senha, setSenha] = useState("");
+  const [error, setError] = useState("");
+  const [imagemUrl, setImagemUrl] = useState(initialData?.imagem_url || "");
+  const [imagemFile, setImagemFile] = useState<File | null>(null);
+  const [cor, setCor] = useState(initialData?.cor || "#1976d2");
 
-  // Consultas para cargos e permissões
-  const { data: cargosData, loading: cargosLoading, error: cargosError } = useQuery(GET_CARGOS);
-  const { data: permissoesData, loading: permissoesLoading, error: permissoesError } = useQuery(GET_PERMISSOES);
+  const { data: cargosData } = useQuery(GET_CARGOS);
 
-  // Mutação para criar colaborador
-  const [createColaborador, { loading: saving, error: saveError }] = useMutation(CREATE_COLABORADOR, {
-    onCompleted: (data) => {
-      console.log("Colaborador criado:", data.createColaborador);
-      if (setData) {
-        setData((prev) => [...prev, data.createColaborador]); // Atualiza a lista de colaboradores
-        setIsOpen(false); // Fecha o diálogo
-      } else {
-        console.error("setData não está definido corretamente");
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao criar colaborador:", error);
-    },
-  });
+  useEffect(() => {
+    setDescricao(initialData?.descricao || "");
+    setEmail(initialData?.email || "");
+    setTelemovel(initialData?.telemovel || "");
+    setCargoId(initialData?.cargoId || "");
+    setSenha("");
+    setImagemUrl(initialData?.imagem_url || "");
+    setCor(initialData?.cor || "#1976d2");
+    setImagemFile(null);
+  }, [initialData]);
 
-  // Se o diálogo não estiver aberto, retorna null
-  if (!isOpen) {
-    return null;
-  }
-
-  // Função para lidar com as mudanças nos inputs
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
-  };
-
-  // Função para salvar os dados do colaborador
-  const handleSave = async () => {
-    try {
-      await createColaborador({
-        variables: {
-          descricao: formData.descricao,
-          email: formData.email,
-          telemovel: formData.telemovel,
-          cargoId: formData.cargoId!,
-          permissaoId: formData.permissaoId!,
-          senha: formData.senha,
-        },
-        update: (cache, { data }) => {
-          console.log("Colaborador criado:", data.createColaborador);
-        },
-      });
-    } catch (error) {
-      console.error("Erro ao salvar colaborador:", error);
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImagemFile(e.target.files[0]);
+      setImagemUrl(URL.createObjectURL(e.target.files[0]));
     }
   };
 
-  // Carregamento de dados
-  if (cargosLoading || permissoesLoading) return <p>Carregando dados...</p>;
-  if (cargosError || permissoesError) {
-    console.error("Erro ao carregar dados:", cargosError || permissoesError);
-    return <p>Erro ao carregar dados: {cargosError?.message || permissoesError?.message}</p>;
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!descricao || !email || !cargoId || (!initialData?.id && !senha)) {
+      setError("Preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    let imagem_url = initialData?.imagem_url || "";
+    if (imagemFile) {
+      const formData = new FormData();
+      formData.append("file", imagemFile);
+      const response = await fetch("http://localhost:3000/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      imagem_url = data.url; // URL retornada pelo backend
+    }
+
+    // Só envie imagem_url se for uma URL válida do backend
+    if (!imagem_url || imagem_url.startsWith("blob:")) {
+      imagem_url = null;
+    }
+
+    const payload: any = {
+      descricao,
+      email,
+      telemovel,
+      cargoId: Number(cargoId),
+      senha,
+      imagem_url,
+      cor,
+    };
+    if (imagem_url) payload.imagem_url = imagem_url;
+    if (senha) payload.senha = senha;
+    if (initialData?.id) payload.id = initialData.id;
+
+    onSubmit(payload);
+    setError("");
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <div onClick={() => setIsOpen(true)}>{children}</div>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Novo Colaborador</DialogTitle>
-          <DialogDescription>
-            Preencha as informações para criar um novo colaborador.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          {/* Campo Nome */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="descricao" className="text-right">
-              Nome do Colaborador
-            </label>
-            <input
-              id="descricao"
-              placeholder="Digite o nome"
-              className="col-span-3"
-              value={formData.descricao}
-              onChange={handleInputChange}
-            />
-          </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>{initialData?.id ? "Editar Colaborador" : "Novo Colaborador"}</CardTitle>
+        <CardDescription>
+          {initialData?.id
+            ? "Altere os dados do colaborador abaixo."
+            : "Preencha os dados para cadastrar um novo colaborador."}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit}>
+          <div className="grid w-full items-center gap-4">
+             
+            <div className="flex flex-row space-x-4">
+              <div className="flex flex-col w-1/6">
+              <Label>Cor do Colaborador</Label>
+              <ColorPicker value={cor} onChange={setCor} label="Cor do Colaborador" />
+            </div>
+            <div className="flex flex-col space-y-1.5 w-2/6">
+              <Label>Imagem do Colaborador</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+              {imagemUrl && (
+                <img
+                  src={imagemUrl}
+                  alt="Preview"
+                  className="w-20 h-20 rounded-full mt-2 object-cover border"
+                />
+              )}
+            </div>
+            <div className="flex flex-col space-y-1.5 w-3/6">
+              <Label>Nome</Label>
+              <Input
+                value={descricao}
+                onChange={e => setDescricao(e.target.value)}
+                placeholder="Nome do colaborador"
+                required
+              />
+            </div>
 
-          {/* Campo Email */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="email" className="text-right">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="Digite um e-mail válido"
-              className="col-span-3"
-              value={formData.email}
-              onChange={handleInputChange}
-            />
-          </div>
 
-          {/* Campo Telemóvel */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="telemovel" className="text-right">
-              Telemóvel
-            </label>
-            <input
-              id="telemovel"
-              placeholder="Digite um telemóvel válido"
-              className="col-span-3"
-              value={formData.telemovel}
-              onChange={handleInputChange}
-            />
+            </div>
+            <div className="flex flex-row space-x-4">
+            <div className="flex flex-col space-y-1.5 w-1/2">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+              />
+            </div>
+            <div className="flex flex-col space-y-1.5 w-1/2">
+              <Label>Telemóvel</Label>
+              <Input
+                value={telemovel}
+                onChange={e => setTelemovel(e.target.value)}
+                placeholder="Telemóvel"
+              />
+            </div>
+            </div>
+            <div className="flex flex-row space-x-4">
+            <div className="flex flex-col space-y-1.5 w-1/2">
+              <Label>Cargo</Label>
+              <Select
+  value={cargoId}
+  onValueChange={setCargoId}
+>
+  <SelectTrigger>
+    <SelectValue placeholder="Selecione um cargo" />
+  </SelectTrigger>
+  <SelectContent>
+    {cargosData?.cargos?.map((cargo) => (
+      <SelectItem key={cargo.id} value={String(cargo.id)}>
+        {cargo.descricao}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+            </div>
+            {!initialData?.id && (
+              <div className="flex flex-col space-y-1.5 w-1/2">
+                <Label>Senha</Label>
+                <Input
+                  type="password"
+                  value={senha}
+                  onChange={e => setSenha(e.target.value)}
+                  placeholder="Senha"
+                  required
+                />
+              </div>
+            )}
+            </div>
+           
+            {error && <span className="text-red-500 text-sm">{error}</span>}
           </div>
-
-          {/* Campo Cargo */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="cargo" className="text-right">
-              Cargo
-            </label>
-            <Select
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, cargoId: parseInt(value, 10) }))
-              }
-            >
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Selecione um cargo" />
-              </SelectTrigger>
-              <SelectContent>
-                {cargosData?.cargos.map((cargo: any) => (
-                  <SelectItem key={cargo.id} value={String(cargo.id)}>
-                    {cargo.descricao}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Campo Permissão */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="permissao" className="text-right">
-              Permissão
-            </label>
-            <Select
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, permissaoId: parseInt(value, 10) }))
-              }
-            >
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Selecione uma permissão" />
-              </SelectTrigger>
-              <SelectContent>
-                {permissoesData?.permissoes.map((permissao: any) => (
-                  <SelectItem key={permissao.id} value={String(permissao.id)}>
-                    {permissao.descricao}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Campo Senha */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="senha" className="text-right">
-              Senha
-            </Label>
-            <Input
-              id="senha"
-              type="password"
-              placeholder="Digite uma senha"
-              className="col-span-3"
-              value={formData.senha}
-              onChange={handleInputChange}
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="button" onClick={handleSave} disabled={saving}>
-            {saving ? "Salvando..." : "Salvar"}
-          </Button>
-          {saveError && <p className="text-red-500">Erro ao salvar colaborador: {saveError.message}</p>}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <CardFooter className="flex justify-center mt-4">
+      <Button type="submit">
+        {initialData?.id ? "Alterar" : "Cadastrar"}
+      </Button>
+      {initialData?.id && onCancel && (
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+      )}
+    </CardFooter>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

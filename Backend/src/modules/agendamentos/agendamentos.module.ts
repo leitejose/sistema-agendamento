@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AgendamentosResolver } from './agendamentos.resolver';
-import { PrismaModule } from '../../../prisma/prisma.module'; // Certifique-se de usar o caminho correto
+import { PrismaService } from '../../../prisma/prisma.service';
+import { NotificationModule } from '../notifications/notification.module'; // <-- importe aqui
 
 @Module({
-  imports: [PrismaModule], // Importe o PrismaModule
-  providers: [AgendamentosResolver],
+  imports: [NotificationModule], // <-- adicione aqui
+  providers: [AgendamentosResolver, PrismaService],
 })
 export class AgendamentosModule {}

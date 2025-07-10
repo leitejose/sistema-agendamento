@@ -18,7 +18,6 @@ export class ColaboradoresService {
   async findAll() {
     return this.prisma.colaborador.findMany({
       include: {
-        permissao: true, // Inclua a relação com a tabela de permissões
         cargo: true, // Inclua a relação com a tabela de cargos
       },
     });
@@ -29,7 +28,6 @@ export class ColaboradoresService {
     return this.prisma.colaborador.findUnique({
       where: { id },
       include: {
-        permissao: true, // Inclua a relação com a tabela de permissões
         cargo: true, // Inclua a relação com a tabela de cargos
       },
     });

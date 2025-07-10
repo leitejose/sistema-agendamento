@@ -35,7 +35,6 @@ import {
 } from "@/components/ui/sheet";
 import * as React from "react";
 import { NavUser } from "@/components/nav-user-dropdown";
-import CreateServiceDialog from "@/pages/ServicesScreen/create-services-dialog";
 import { SearchForm } from "./services-search-form";
 
 interface AppSidebarProps {
@@ -54,16 +53,7 @@ export function AppSidebar({ setData, setSearchText, dataList }: AppSidebarProps
         <SearchForm className="pt-4" setSearchText={setSearchText} />
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <CreateServiceDialog setData={setData}>
-              <SidebarMenuButton>
-                <Plus />
-                Novo Serviço
-              </SidebarMenuButton>
-            </CreateServiceDialog>
-          </SidebarMenuItem>
-        </SidebarMenu>
+    
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

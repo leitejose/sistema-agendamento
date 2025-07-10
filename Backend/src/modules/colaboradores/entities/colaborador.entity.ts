@@ -1,7 +1,5 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Cargo } from 'src/modules/cargo/entities/cargo.entity';
-import { Permissao } from 'src/modules/permissoes/entities/permissoes.entity';
-
 @ObjectType()
 export class Colaborador {
   @Field(() => Int)
@@ -22,6 +20,9 @@ export class Colaborador {
   @Field(() => Cargo, { nullable: true })
   cargo?: Cargo;
 
-  @Field(() => Permissao, { nullable: true })
-  permissao?: Permissao;
+  @Field(() => String, { nullable: true })
+  imagem_url?: string | null;
+
+  @Field(() => String)
+  cor: string;
 }

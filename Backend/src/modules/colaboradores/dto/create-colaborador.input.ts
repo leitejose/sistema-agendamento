@@ -1,4 +1,4 @@
-import { InputType, Int, Field } from '@nestjs/graphql';
+import { InputType, Field, Int } from '@nestjs/graphql';
 
 @InputType()
 export class CreateColaboradorInput {
@@ -8,7 +8,6 @@ export class CreateColaboradorInput {
   @Field(() => String)
   email: string;
 
-
   @Field(() => String)
   telemovel: string;
 
@@ -16,8 +15,11 @@ export class CreateColaboradorInput {
   senha: string;
 
   @Field(() => Int)
-  permissaoId: number;
-
-  @Field(() => Int)
   cargoId: number;
+
+  @Field({ nullable: true })
+  imagem_url?: string;
+
+  @Field()
+  cor: string;
 }

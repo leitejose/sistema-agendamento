@@ -1,0 +1,52 @@
+/* calendar-compact.css */
+
+/* Deixa o header menor e os botões sem background */
+.fc .fc-toolbar {
+  font-size: 0.95rem !important;
+  min-height: 36px !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  
+}
+
+.fc .fc-button {
+  background: transparent !important;
+  border: none !important;
+  color: #000 !important; /* Ou a cor que preferir */
+  box-shadow: none !important;
+  font-size: 0.95em !important;
+  padding: 2px 8px !important;
+  margin: 0 2px !important;
+  border-radius: 4px !important;
+  font-weight: bold !important;
+  font-family: poppins, sans-serif !important;
+}
+
+.fc .fc-button:hover,
+.fc .fc-button:focus {
+  background: #000 !important; /* Ou transparente para sem highlight */
+  color: #fff !important;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1em !important;
+  font-weight: 500 !important;
+}
+
+/* Adicione no seu arquivo de estilos global ou no CSS do componente */
+.fc .fc-daygrid-event {
+  font-size: 0.75rem;      /* Texto menor */
+  padding: 2px 4px;        /* Menos espaço interno */
+  border-radius: 3px;      /* Cantos mais arredondados */
+  min-height: 18px;        /* Altura mínima menor */
+  line-height: 1.1;        /* Linhas mais compactas */
+}
+
+.fc .fc-daygrid-day-frame {
+  max-height: 60px; /* ajuste conforme necessário */
+  overflow: hidden; /* Esconde o overflow */
+}
+.fc .fc-daygrid-day-events {
+  max-height: 40px;
+  overflow: visible;
+}

@@ -132,8 +132,9 @@ export const CREATE_COLABORADOR = gql`
     $email: String!
     $telemovel: String!
     $cargoId: Int!
-    $permissaoId: Int!
     $senha: String!
+    $imagem_url: String
+    $cor: String!
   ) {
     createColaborador(
       createColaboradorInput: {
@@ -141,19 +142,18 @@ export const CREATE_COLABORADOR = gql`
         email: $email,
         telemovel: $telemovel,
         cargoId: $cargoId,
-        permissaoId: $permissaoId,
-        senha: $senha
+        senha: $senha,
+        imagem_url: $imagem_url,
+        cor: $cor
       }
     ) {
       id
       descricao
       email
       telemovel
+      imagem_url
+      cor
       cargo {
-        id
-        descricao
-      }
-      permissao {
         id
         descricao
       }
@@ -167,8 +167,9 @@ export const UPDATE_COLABORADOR = gql`
     $descricao: String!,
     $email: String!,
     $telemovel: String!,
-    $id_cargo: Int!,
-    $id_permissao: Int!
+    $cargoId: Int!,
+    $imagem_url: String,
+    $cor: String!
   ) {
     updateColaborador(
       id: $id,
@@ -176,26 +177,32 @@ export const UPDATE_COLABORADOR = gql`
         descricao: $descricao,
         email: $email,
         telemovel: $telemovel,
-        id_cargo: $id_cargo,
-        id_permissao: $id_permissao
+        cargoId: $cargoId,
+        imagem_url: $imagem_url,
+        cor: $cor
       }
     ) {
       id
       descricao
       email
       telemovel
+      imagem_url
+      cor
       cargo {
-        id
-        descricao
-      }
-      permissao {
         id
         descricao
       }
     }
   }
 `;
-
+export const UPLOAD_IMAGEM_COLABORADOR = gql`
+  mutation UploadImagemColaborador($file: Upload!, $colaboradorId: Int!) {
+    uploadImagemColaborador(file: $file, colaboradorId: $colaboradorId) {
+      id
+      imagem_url
+    }
+  }
+`;
 export const DELETE_COLABORADOR = gql`
   mutation DeleteColaborador($id: Int!) {
     removeColaborador(id: $id) {
@@ -322,5 +329,16 @@ export const UPDATE_CARGO = gql`
 export const REMOVE_CARGO = gql`
   mutation RemoveCargo($id: Int!) {
     removeCargo(id: $id) { id }
+  }
+`;
+export const CREATE_DISPONIBILIDADE = gql`
+  mutation CreateDisponibilidade($data: [CreateDisponibilidadeInput!]!) {
+    createDisponibilidades(data: $data) {
+      id
+      id_colaborador
+      dia_da_semana
+      hora_inicio
+      hora_fim
+    }
   }
 `;

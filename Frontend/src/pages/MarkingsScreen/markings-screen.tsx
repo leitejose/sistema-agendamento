@@ -7,13 +7,27 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { Header } from "@/components/header";
-import { DataTable } from "@/components/data-table";
 import { useState, useEffect } from "react";
 import { Edit, Trash2 } from "lucide-react";
 import EditMarkingsDialog from "@/pages/MarkingsScreen/edit-marking-dialog";
+import CreateMarkingsDialog from "@/pages/MarkingsScreen/create-markings-dialog";
 import { z } from "zod";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import React from "react";
+import { SearchForm } from './markings-search-form';
+import { parseISO } from "date-fns";
+import { PdfFilterDialog } from "./PdfFilterDialog";
+import { Button } from "@/components/ui/button";
+import { FaFileDownload } from "react-icons/fa";
+
+
+
+const monthNames = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+];
+
+const currentYear = new Date().getFullYear();
 
 const agendamentoSchema = z.object({
   id_utente: z.string().nonempty("O ID do utente é obrigatório."),
@@ -26,6 +40,16 @@ const agendamentoSchema = z.object({
   observacoes: z.string().optional(),
 });
 
+// Função utilitária para agrupar por data
+function groupByDate(data) {
+  return data.reduce((acc, item) => {
+    const date = new Date(item.data_agendamento).toLocaleDateString();
+    if (!acc[date]) acc[date] = [];
+    acc[date].push(item);
+    return acc;
+  }, {});
+}
+
 export default function Page() {
   const { loading, error, data } = useQuery(GET_AGENDAMENTOS);
   const { loading: loadingUtentes, data: utentesData } = useQuery(GET_UTENTES);
@@ -36,9 +60,17 @@ export default function Page() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentAgendamento, setCurrentAgendamento] = useState<any>(null);
   const [searchText, setSearchText] = useState("");
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [selectedStatusIds, setSelectedStatusIds] = React.useState<number[]>([]);
   const [selectedColaboradores, setSelectedColaboradores] = React.useState<number[]>([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [filterType, setFilterType] = useState<"mes" | "todos">("mes");
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
+  const [pdfFiltros, setPdfFiltros] = useState(null);
+  const [showPdf, setShowPdf] = useState(false);
 
   const [removeAgendamento] = useMutation(REMOVE_AGENDAMENTO, {
     onCompleted: (data) => {
@@ -184,7 +216,7 @@ export default function Page() {
             </SelectTrigger>
             <SelectContent>
               {statusLoading ? (
-                <SelectItem value="" disabled>Carregando...</SelectItem>
+                <div className="px-2 py-1 text-muted-foreground">Carregando...</div>
               ) : (
                 statusData?.statusAgendamentos
                   ?.filter((status: any) => status.id !== undefined && status.id !== null && status.id !== "")
@@ -193,7 +225,7 @@ export default function Page() {
                       <span
                         style={{
                           backgroundColor: status.cor,
-                          color: "#fff", // ou escolha uma cor de texto que contraste com o fundo
+                          color: "#fff",
                           fontWeight: "bold",
                           padding: "2px 8px",
                           borderRadius: "4px",
@@ -248,7 +280,24 @@ export default function Page() {
     return timeStr.slice(0, 5);
   }
 
+  const STATUS_CANCELADO = 3; // ajuste para o ID correto do status cancelado
+
   const filteredData = dataList.filter((item) => {
+    // Filtro por status selecionado
+    if (
+      selectedStatusIds.length > 0 &&
+      !selectedStatusIds.includes(Number(item.statusId))
+    ) {
+      return false;
+    }
+    // Se não houver filtro de status, não mostra cancelados
+    if (
+      selectedStatusIds.length === 0 &&
+      Number(item.statusId) === STATUS_CANCELADO
+    ) {
+      return false;
+    }
+
     // Filtro por busca
     const utente = utentesData?.utentes?.find((u) => u.id === item.id_utente);
     const nomeUtente = utente?.nome?.toLowerCase() || "";
@@ -259,11 +308,20 @@ export default function Page() {
 
     // Filtro por data
     let matchesDate = true;
-    if (selectedDate) {
-      const itemDate = new Date(item.data_agendamento);
+    const itemDate = typeof item.data_agendamento === "string"
+      ? parseISO(item.data_agendamento)
+      : item.data_agendamento;
+
+    if (selectedDay) {
+      // Filtro por dia
+      matchesDate = itemDate.toDateString() === selectedDay.toDateString();
+    } else if (selectedMonth !== null) {
+      // Filtro por mês
       matchesDate =
-        itemDate.toDateString() === selectedDate.toDateString();
+        itemDate.getMonth() === selectedMonth &&
+        itemDate.getFullYear() === selectedYear;
     }
+    // Se selectedMonth for null e selectedDay for null, mostra todos
 
     const matchesStatus =
       selectedStatusIds.length === 0 || selectedStatusIds.includes(Number(item.statusId));
@@ -272,27 +330,153 @@ export default function Page() {
     return matchesSearch && matchesDate && matchesStatus && matchesColaborador;
   });
 
-  return (
-    <SidebarProvider>
-     <AppSidebar
-  setData={setData}
-  setSearchText={setSearchText}
-  dataList={dataList}
-  selectedDate={selectedDate}
-  setSelectedDate={setSelectedDate}
-  selectedStatusIds={selectedStatusIds}
-  setSelectedStatusIds={setSelectedStatusIds}
-  loadingColaboradores={loadingColaboradores}
-  colaboradoresData={colaboradoresData}
-  selectedColaboradores={selectedColaboradores}
-  setSelectedColaboradores={setSelectedColaboradores}
-/>
+  const groupedData = groupByDate(filteredData);
 
+  // Exemplo de callback para aplicar filtros
+  const handleApplyFilters = (filtros) => {
+    const params = new URLSearchParams();
+    if (filtros.colaboradores && filtros.colaboradores.length > 0)
+      params.append("colaboradores", filtros.colaboradores.join(","));
+    if (filtros.dataInicio) params.append("dataInicio", filtros.dataInicio);
+    if (filtros.dataFim) params.append("dataFim", filtros.dataFim);
+
+    window.open(`/relatorio-pdf?${params.toString()}`, "_blank");
+    setIsPdfDialogOpen(false);
+  };
+
+  return (
+    <SidebarProvider >
+      <AppSidebar
+        setData={setData}
+        setSearchText={setSearchText}
+        dataList={dataList}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        selectedStatusIds={selectedStatusIds}
+        setSelectedStatusIds={setSelectedStatusIds}
+        loadingColaboradores={loadingColaboradores}
+        colaboradoresData={colaboradoresData}
+        selectedColaboradores={selectedColaboradores}
+        setSelectedColaboradores={setSelectedColaboradores}
+        selectedDay={selectedDay}
+        setSelectedDay={setSelectedDay}
+      />
       <SidebarInset>
-        <Header />
-        <main className="p-4">
-          <h1 className="text-lg font-bold mb-4">Agendamentos</h1>
-          <DataTable columns={columns} data={filteredData} />
+        <Header onNovaMarcacao={() => setOpenDialog(true)} />
+        <CreateMarkingsDialog
+          open={openDialog}
+          onOpenChange={setOpenDialog}
+          onAgendamentoCriado={novo => setData(prev => [...prev, novo])}
+        />
+        <main className="p-4 text-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-lg font-bold">Agendamentos</h1>
+            <Button onClick={() => setIsPdfDialogOpen(true)}>
+              <FaFileDownload />
+              Exportar
+            </Button>
+          </div>
+          <div className="mb-4 flex gap-2">
+            <PdfFilterDialog
+              colaboradores={colaboradoresData?.colaboradores || []}
+              open={isPdfDialogOpen}
+              onOpenChange={setIsPdfDialogOpen}
+              onApply={({ colaboradores, dataInicio, dataFim }) => {
+                // Filtra as marcações conforme os filtros
+                const marcacoesFiltradas = dataList.filter(
+                  (m) =>
+                    colaboradores.includes(String(m.id_colaborador)) &&
+                    m.data_agendamento >= dataInicio &&
+                    m.data_agendamento <= dataFim
+                );
+
+                if (marcacoesFiltradas.length === 0) {
+                  alert("Não há marcações para o período ou médico indicado.");
+                  return false;
+                }
+
+                const params = new URLSearchParams();
+                if (colaboradores && colaboradores.length > 0)
+                  params.append("colaboradores", colaboradores.join(","));
+                if (dataInicio) params.append("dataInicio", dataInicio);
+                if (dataFim) params.append("dataFim", dataFim);
+
+                window.open(`/relatorio-pdf?${params.toString()}`, "_blank");
+                setIsPdfDialogOpen(false);
+              }}
+            />
+          </div>
+          <SearchForm className="pt-2 pb-4" setSearchText={setSearchText} />
+          <div className="flex gap-2 items-center justify-center mb-4 flex-wrap bg-muted p-2 rounded">
+            <button
+              className={`px-3 py-1 rounded ${selectedMonth === null ? "bg-primary text-white" : "bg-muted"}`}
+              onClick={() => {
+                setSelectedMonth(null);
+                setSelectedDay(null); // Limpa filtro de dia
+              }}
+            >
+              Todos
+            </button>
+            {monthNames.map((name, idx) => (
+              <button
+                key={name}
+                className={`px-3 py-1 rounded ${selectedMonth === idx ? "bg-primary text-white" : "bg-muted"}`}
+                onClick={() => {
+                  setSelectedMonth(idx);
+                  setSelectedDay(null); // Limpa filtro de dia
+                }}
+              >
+                {name}
+              </button>
+            ))}
+            {/* Se quiser permitir trocar de ano: */}
+            <input
+              type="number"
+              value={selectedYear}
+              onChange={e => setSelectedYear(Number(e.target.value))}
+              className="w-20 ml-2 border rounded px-2 py-1"
+              min={2000}
+              max={2100}
+            />
+          </div>
+          <div className="border rounded-md overflow-x-auto">
+            <table className="min-w-full text-left">
+              <thead>
+                <tr>
+                  {columns.map((col) => (
+                    <th
+                      key={col.accessorKey || col.id}
+                      className="px-4 py-2 border-b font-semibold bg-background"
+                    >
+                      {col.header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(groupedData).map(([date, items]) => (
+                  <React.Fragment key={date}>
+                    <tr>
+                      <td colSpan={columns.length} className="bg-muted px-4 py-2 font-semibold">
+                        {date}
+                      </td>
+                    </tr>
+                    {items.map((row, idx) => (
+                      <tr key={row.id || idx} className="even:bg-muted/50">
+                        {columns.map((col) => (
+                          <td key={col.accessorKey || col.id} className="px-4 py-2 border-b align-middle">
+                            {col.cell
+                              ? col.cell({ row: { original: row }, getValue: () => row[col.accessorKey] })
+                              : row[col.accessorKey]}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </main>
       </SidebarInset>
       <EditMarkingsDialog

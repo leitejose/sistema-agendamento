@@ -9,7 +9,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import {Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import * as React from "react";
 import { NavUser } from "@/components/nav-user-dropdown";
 import { SearchForm } from "./utentes-search-form";
@@ -45,6 +45,20 @@ export function AppSidebar({ setSearchText }: { setSearchText: React.Dispatch<Re
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
+  );
+}
+
+// Dentro do AppSidebar:
+function AppSidebar({ setSearchText }) {
+  // ...código...
+  return (
+    <div>
+      {/* NÃO faça isso: */}
+      {/* <div setSearchText={setSearchText}> */}
+      {/* CORRETO: */}
+      <input onChange={(e) => setSearchText(e.target.value)} />
+      {/* ...restante do sidebar... */}
+    </div>
   );
 }
 

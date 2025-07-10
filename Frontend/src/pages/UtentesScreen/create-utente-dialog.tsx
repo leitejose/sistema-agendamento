@@ -1,209 +1,213 @@
-import { Combobox} from "@/components/combobox"
-import { Button } from "@/components/ui/button"
+import * as React from "react";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { GET_UTENTES } from "@/graphql/queries"
-import { CREATE_UTENTE } from "@/graphql/mutations"
-import { useMutation } from "@apollo/client"
-import { useState } from "react"
-import { z } from 'zod';
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Combobox } from "@/components/combobox";
+import { GET_UTENTES } from "@/graphql/queries";
+import { CREATE_UTENTE } from "@/graphql/mutations";
+import { useMutation } from "@apollo/client";
+import { z } from "zod";
 
 const CreateUtenteSchema = z.object({
-  nome: z.string().min(1, 'Nome é obrigatório'),
-  email: z.string().email('Email inválido'),
-  telemovel: z.string().regex(/^\d+$/, 'Número de telemóvel inválido'),
+  nome: z.string().min(1, "Nome é obrigatório"),
+  email: z.string().email("Email inválido"),
+  telemovel: z.string().regex(/^\d+$/, "Número de telemóvel inválido"),
   morada: z.string().optional(),
   distrito: z.string().optional(),
   concelho: z.string().optional(),
-  codigo_postal: z.string().regex(/^\d+$/, 'Código postal inválido').optional(),
-  pais: z.string().min(1, 'País é obrigatório'),
+  codigo_postal: z.string().regex(/^\d+$/, "Código postal inválido").optional(),
+  pais: z.string().min(1, "País é obrigatório"),
 });
 
-export default function CreateUtentesDialog({ children }: { children: React.ReactNode }) {
+export default function CreateUtentesForm({
+  formData,
+  setFormData,
+  onSubmit,
+  editingUtente,
+  onCancelEdit,
+}: {
+  formData: any;
+  setFormData: (data: any) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  editingUtente: any;
+  onCancelEdit: () => void;
+}) {
   const [createUtente] = useMutation(CREATE_UTENTE);
-  const [formData, setFormData] = useState({
-    nome: "",
-    email: "",
-    telemovel: "",
-    morada: "",
-    distrito: "",
-    concelho: "",
-    codigo_postal: "",
-    pais: "Portugal", // País fixo
-  });
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSave = async () => {
+  useEffect(() => {
+    if (editingUtente) {
+      setFormData({
+        nome: editingUtente.nome || "",
+        email: editingUtente.email || "",
+        telemovel: editingUtente.telemovel || "",
+        morada: editingUtente.morada || "",
+        distrito: editingUtente.distrito || "",
+        concelho: editingUtente.concelho || "",
+        codigo_postal: editingUtente.codigo_postal || "",
+        pais: editingUtente.pais || "Portugal",
+      });
+    }
+  }, [editingUtente, setFormData]);
+
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const parsedData = CreateUtenteSchema.safeParse(formData);
+    if (!parsedData.success) {
+      setError(parsedData.error.errors.map((err) => err.message).join("\n"));
+      return;
+    }
     try {
-      // Validação com Zod
-      const parsedData = CreateUtenteSchema.safeParse(formData);
-      if (!parsedData.success) {
-        alert(parsedData.error.errors.map((err) => err.message).join('\n'));
-        return;
-      }
-
-      // Envia os dados ao backend
       await createUtente({
-        variables: {
-          data: formData,
-        },
+        variables: { data: formData },
         refetchQueries: [{ query: GET_UTENTES }],
       });
-
-      alert('Utente criado com sucesso!');
+      alert("Utente criado com sucesso!");
       setFormData({
-        nome: '',
-        email: '',
-        telemovel: '',
-        morada: '',
-        distrito: '',
-        concelho: '',
-        codigo_postal: '',
-        pais: 'Portugal',
+        nome: "",
+        email: "",
+        telemovel: "",
+        morada: "",
+        distrito: "",
+        concelho: "",
+        codigo_postal: "",
+        pais: "Portugal",
       });
-
-      // Fecha o diálogo
-      setIsDialogOpen(false);
+      setError("");
     } catch (error) {
-      console.error('Erro ao criar utente:', error);
-      alert('Erro ao criar utente.');
+      setError("Erro ao criar utente.");
+      console.error("Erro ao criar utente:", error);
     }
   };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Novo Utente</DialogTitle>
-          <DialogDescription>
-            Preencha as informações para criar um novo utente.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="nome" className="text-right">
-              Nome do utente
-            </Label>
-            <Input
-              id="nome"
-              value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-              placeholder="Digite o nome"
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="email" className="text-right">
-              Email
-            </Label>
-            <Input
-              id="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="Digite o e-mail"
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="telemovel" className="text-right">
-              Telemóvel
-            </Label>
-            <Input
-              id="telemovel"
-              value={formData.telemovel}
-              onChange={(e) => setFormData({ ...formData, telemovel: e.target.value })}
-              placeholder="Digite o telemóvel"
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="morada" className="text-right">
-              Endereço
-            </Label>
-            <Input
-              id="morada"
-              value={formData.morada}
-              onChange={(e) => setFormData({ ...formData, morada: e.target.value })}
-              placeholder="Digite a morada"
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="pais" className="text-right">
-              País
-            </Label>
-            <Combobox
-              items={[
-                { value: "PT", label: "Portugal" },
-                { value: "ES", label: "Espanha" },
-                { value: "FR", label: "França" },
-                { value: "IT", label: "Itália" },
-              ]}
-              value={formData.pais}
-              onChange={(value) => setFormData({ ...formData, pais: value })}
-              placeholder="Selecione o país"
+    <Card className="w-full text-sm">
+      <CardHeader>
+        <CardTitle>{editingUtente ? "Editar Utente" : "Novo Utente"}</CardTitle>
+        <CardDescription>
+          {editingUtente
+            ? "Altere os dados do utente abaixo."
+            : "Preencha os dados para cadastrar um novo utente."}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSave}>
+          <div className="grid w-full items-center gap-4">
+            <div className="flex flex-row space-x-4">
+              <div className="flex flex-col space-y-1.5 w-1/2">
+                <Label>Nome</Label>
+                <Input
+                  value={formData?.nome ?? ""}
+                  onChange={e => setFormData({ ...formData, nome: e.target.value })}
+                  placeholder="Nome do utente"
+                  required
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5 w-1/2">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={formData?.email ?? ""}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="Email"
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex flex-row space-x-4">
+              <div className="flex flex-col space-y-1.5 w-1/2">
+                <Label>Telemóvel</Label>
+                <Input
+                  value={formData?.telemovel ?? ""}
+                  onChange={e => setFormData({ ...formData, telemovel: e.target.value })}
+                  placeholder="Telemóvel"
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5 w-1/2">
+                <Label>Morada</Label>
+                <Input
+                  value={formData?.morada ?? ""}
+                  onChange={e => setFormData({ ...formData, morada: e.target.value })}
+                  placeholder="Morada"
+                />
+              </div>
+            </div>
+            <div className="flex flex-row space-x-4">
+              <div className="flex flex-col space-y-1.5 w-1/3">
+                <Label>País</Label>
+                <Combobox
+                  items={[
+                    { value: "Portugal", label: "Portugal" },
+                    { value: "Espanha", label: "Espanha" },
+                    { value: "França", label: "França" },
+                    { value: "Itália", label: "Itália" },
+                  ]}
+                  value={formData?.pais ?? "Portugal"}
+                  onChange={value => setFormData({ ...formData, pais: value })}
+                  placeholder="Selecione o país"
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5 w-1/3">
+                <Label>Distrito</Label>
+                <Combobox
+                  items={[
+                    { value: "Lisboa", label: "Lisboa" },
+                    { value: "Coimbra", label: "Coimbra" },
+                    { value: "Braga", label: "Braga" },
+                    { value: "Évora", label: "Évora" },
+                  ]}
+                  value={formData?.distrito ?? ""}
+                  onChange={value => setFormData({ ...formData, distrito: value })}
+                  placeholder="Selecione um distrito"
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5 w-1/3">
+                <Label>Concelho</Label>
+                <Combobox
+                  items={[
+                    { value: "Cantanhede", label: "Cantanhede" },
+                    { value: "Figueira da Foz", label: "Figueira da Foz" },
+                  ]}
+                  value={formData?.concelho ?? ""}
+                  onChange={value => setFormData({ ...formData, concelho: value })}
+                  placeholder="Selecione um concelho"
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5 w-1/2">
+                <Label>Código Postal</Label>
+                <Input
+                  value={formData?.codigo_postal ?? ""}
+                  onChange={e => setFormData({ ...formData, codigo_postal: e.target.value })}
+                  placeholder="Código Postal"
+                />
+              </div>
+            </div>
+            <div className="flex flex-row space-x-4">
               
-            />
+            </div>
+            {error && <span className="text-red-500 text-sm">{error}</span>}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="distrito" className="text-right">
-              Distrito
-            </Label>
-            <Combobox
-              items={[
-                { value: "Li", label: "Lisboa" },
-                { value: "Co", label: "Coimbra" },
-                { value: "Br", label: "Braga" },
-                { value: "Ev", label: "Évora" },
-              ]}
-              value={formData.distrito}
-              onChange={(value) => setFormData({ ...formData, distrito: value })}
-              placeholder="Selecione um distrito"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="concelho" className="text-right">
-              Concelho
-            </Label>
-            <Combobox
-              items={[
-                { value: "CNT", label: "Cantanhede" },
-                { value: "FDF", label: "Figueira da Foz" },
-              ]}
-              value={formData.concelho}
-              onChange={(value) => setFormData({ ...formData, concelho: value })}
-              placeholder="Selecione um concelho"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="codigo_postal" className="text-right">
-              Código Postal
-            </Label>
-            <Input
-              id="codigo_postal"
-              value={formData.codigo_postal}
-              onChange={(e) => setFormData({ ...formData, codigo_postal: e.target.value })}
-              placeholder="Digite o código postal"
-              className="col-span-3"
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="submit" onClick={handleSave}>Salvar</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
+          <CardFooter className="flex justify-center mt-4">
+            <Button type="submit">
+              {editingUtente ? "Alterar" : "Cadastrar"}
+            </Button>
+            {editingUtente && (
+              <Button className="m-4" type="button" variant="outline" onClick={onCancelEdit}>
+                Cancelar
+              </Button>
+            )}
+          </CardFooter>
+        </form>
+      </CardContent>
+    </Card>
+  );
 }

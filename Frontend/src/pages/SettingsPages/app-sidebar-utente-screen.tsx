@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Key, TicketsPlane, User, Contact, Clipboard } from "lucide-react";
+import { Key, TicketsPlane, User, Contact, Clock, Clipboard } from "lucide-react";
 import { NavUser } from "@/components/nav-user-dropdown";
 import {
   Sidebar,
@@ -66,6 +66,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton onClick={() => navigate("/permission-screen")}>
               <Key />
               Permissões
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => navigate("/availability-screen")}>
+              <Clock />
+              Disponibilidade
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

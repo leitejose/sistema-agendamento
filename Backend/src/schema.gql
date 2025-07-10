@@ -28,8 +28,23 @@ type Colaborador {
   telemovel: String!
   senha: String!
   cargo: Cargo
-  permissao: Permissao
+  imagem_url: String
+  cor: String!
+  disponibilidades: [Disponibilidade!]!
 }
+
+type Disponibilidade {
+  id: Int!
+  id_colaborador: Int!
+  dia_da_semana: Int!
+  hora_inicio: DateTime!
+  hora_fim: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
 
 type UtenteModel {
   id: Int!
@@ -44,7 +59,7 @@ type UtenteModel {
 }
 
 type AuthPayload {
-  accessToken: String!
+  token: String!
   colaborador: Colaborador!
 }
 
@@ -62,11 +77,6 @@ type Agendamento {
   atualizado_em: DateTime!
 }
 
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
 type StatusAgendamento {
   id: Int!
   descricao: String!
@@ -79,6 +89,11 @@ type Ferias {
   data_inicio: DateTime!
   data_fim: DateTime!
   colaborador_id: Int!
+}
+
+type DisponibilidadeHorariosDisponiveisOutput {
+  horarios: [String!]!
+  mensagem: String
 }
 
 type Query {
@@ -96,6 +111,9 @@ type Query {
   statusAgendamentos: [StatusAgendamento!]!
   ferias: [Ferias!]!
   feriasById(id: Int!): Ferias!
+  disponibilidades: [Disponibilidade!]!
+  disponibilidade(id: Int!): Disponibilidade!
+  horariosDisponiveis(id_colaborador: Int!, data: String!): DisponibilidadeHorariosDisponiveisOutput!
 }
 
 type Mutation {
@@ -110,7 +128,7 @@ type Mutation {
   updateCargo(id: Int!, updateCargoInput: UpdateCargoInput!): Cargo!
   createColaborador(createColaboradorInput: CreateColaboradorInput!): Colaborador!
   updateColaborador(id: Int!, updateColaboradorInput: UpdateColaboradorInput!): Colaborador!
-  removeColaborador(id: Float!): Colaborador!
+  removeColaborador(id: Int!): Colaborador!
   updateUtente(id: Int!, updateUtenteInput: UpdateUtenteInput!): UtenteModel!
   createUtente(data: CreateUtenteInput!): UtenteModel!
   removeUtente(id: Int!): UtenteModel!
@@ -124,6 +142,10 @@ type Mutation {
   createFerias(data: CreateFeriasInput!): Ferias!
   updateFerias(data: UpdateFeriasInput!): Ferias!
   removeFerias(id: Int!): Ferias!
+  createDisponibilidade(createDisponibilidadeInput: CreateDisponibilidadeInput!): Disponibilidade!
+  createDisponibilidades(data: [CreateDisponibilidadeInput!]!): [Disponibilidade!]!
+  updateDisponibilidade(updateDisponibilidadeInput: UpdateDisponibilidadeInput!): Disponibilidade!
+  removeDisponibilidade(id: Int!): Disponibilidade!
 }
 
 input CreatePermissoesInput {
@@ -161,16 +183,18 @@ input CreateColaboradorInput {
   email: String!
   telemovel: String!
   senha: String!
-  permissaoId: Int!
   cargoId: Int!
+  imagem_url: String
+  cor: String!
 }
 
 input UpdateColaboradorInput {
   descricao: String!
   email: String!
   telemovel: String!
-  id_cargo: Int!
-  id_permissao: Int!
+  cargoId: Int!
+  imagem_url: String
+  cor: String!
 }
 
 input UpdateUtenteInput {
@@ -235,5 +259,20 @@ input UpdateFeriasInput {
   data_inicio: DateTime
   data_fim: DateTime
   colaborador_id: Int
+  id: Int!
+}
+
+input CreateDisponibilidadeInput {
+  id_colaborador: Int!
+  dia_da_semana: Int!
+  hora_inicio: DateTime!
+  hora_fim: DateTime!
+}
+
+input UpdateDisponibilidadeInput {
+  id_colaborador: Int
+  dia_da_semana: Int
+  hora_inicio: DateTime
+  hora_fim: DateTime
   id: Int!
 }
