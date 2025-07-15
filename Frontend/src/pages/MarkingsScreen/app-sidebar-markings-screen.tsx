@@ -1,25 +1,17 @@
 import * as React from "react";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { NavUser } from "@/components/nav-user-dropdown";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-
-import CreateMarkingsDialog from "@/pages/MarkingsScreen/create-markings-dialog";
 import { DatePicker } from "@/components/date-picker";
 import { useQuery } from "@apollo/client";
 import { GET_STATUS } from "@/graphql/queries";
 import { StatusFilter } from "./Components/StatusFilter";
 import { ColaboradoresFilter } from "./Components/CollaboratorsFilter";
-import { ExportPDFButton } from "./Components/ExportPDFButton";
 
 
 export function AppSidebar({
@@ -59,6 +51,13 @@ export function AppSidebar({
   const [statusCollapsed, setStatusCollapsed] = React.useState(false);
   const [colabCollapsed, setColabCollapsed] = React.useState(false);
 
+  // Filtra apenas colaboradores cujo cargo é "Médico"
+  const colaboradoresMedicos = colaboradoresData?.colaboradores?.filter(
+    (c: any) =>
+      typeof c.cargo?.descricao === "string" &&
+      c.cargo.descricao.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() === "medico"
+  ) ?? [];
+
   console.log("colaboradoresData", colaboradoresData);
 
   return (
@@ -68,16 +67,15 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent >
         <DatePicker
-      
-  selected={selectedDay}
-  onChange={(date) => {
-    setSelectedDay(date);
-    if (date) {
-      setSelectedMonth(date.getMonth());
-      setSelectedYear(date.getFullYear());
-    }
-  }}
-/>
+          selected={selectedDay}
+          onChange={(date) => {
+            setSelectedDay(date);
+            if (date) {
+              setSelectedMonth(date.getMonth());
+              setSelectedYear(date.getFullYear());
+            }
+          }}
+        />
         <SidebarSeparator className="mx-0" />
         <StatusFilter
           statusData={statusData}
@@ -89,36 +87,16 @@ export function AppSidebar({
         />
         <SidebarSeparator className="mx-0" />
         <ColaboradoresFilter
-          colaboradoresData={colaboradoresData}
+          colaboradoresData={{ colaboradores: colaboradoresMedicos }}
           loadingColaboradores={loadingColaboradores}
           selectedColaboradores={safeSelectedColaboradores}
           setSelectedColaboradores={setSelectedColaboradores}
           collapsed={colabCollapsed}
           setCollapsed={setColabCollapsed}
         />
-        <SidebarSeparator className="mx-0" />
-        <div className="flex items-center justify-center px-4">
-         <ExportPDFButton
-  dataList={dataList}
-  utentes={utentesData?.utentes ?? []} // ✅ corrigido
-  colaboradores={colaboradoresData?.colaboradores ?? []}
-  servicos={servicosData?.servicos ?? []}
-  statusList={statusData?.statusAgendamentos ?? []}
-/>
-        </div>
+       
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <CreateMarkingsDialog setData={setData} >
-              <SidebarMenuButton>
-                <Plus />
-                Nova Marcação
-              </SidebarMenuButton>
-            </CreateMarkingsDialog>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+     
       <SidebarRail />
     </Sidebar>
   );

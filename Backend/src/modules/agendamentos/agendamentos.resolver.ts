@@ -57,24 +57,19 @@ export class AgendamentosResolver {
             )
           : undefined,
         observacoes: createAgendamentoInput.observacoes ?? undefined,
-        utente: {
-          connect: { id: createAgendamentoInput.utenteId },
+        utente: { connect: { id: createAgendamentoInput.utenteId } },
+        colaborador: { connect: { id: createAgendamentoInput.colaboradorId } },
+        servico: { connect: { id: createAgendamentoInput.servicoId } },
+        status_agendamento: {
+          connect: { id: createAgendamentoInput.statusAgendamentoId },
         },
-        colaborador: {
-          connect: { id: createAgendamentoInput.colaboradorId },
-        },
-        servico: {
-          connect: { id: createAgendamentoInput.servicoId },
-        },
-        status: {
-          connect: { id: createAgendamentoInput.statusId },
-        },
+        atualizado_em: new Date(),
       },
       include: {
         utente: true,
         colaborador: true,
         servico: true,
-        status: true,
+        status_agendamento: true,
       },
     });
 
@@ -154,7 +149,7 @@ export class AgendamentosResolver {
         utente: true,
         colaborador: true,
         servico: true,
-        status: true,
+        status_agendamento: true,
       },
     });
 
@@ -174,35 +169,53 @@ export class AgendamentosResolver {
           ? this.makeLocalDate(data_agendamento, hora_fim)
           : undefined,
         observacoes: observacoes ?? undefined,
-        utente: {
-          connect: { id: utenteId },
+        utente: { connect: { id: utenteId } },
+        colaborador: { connect: { id: colaboradorId } },
+        servico: { connect: { id: servicoId } },
+        status_agendamento: {
+          connect: { id: updateAgendamentoInput.statusAgendamentoId },
         },
-        colaborador: {
-          connect: { id: colaboradorId },
-        },
-        servico: {
-          connect: { id: servicoId },
-        },
-        status: {
-          connect: { id: statusId },
-        },
+        atualizado_em: new Date(),
       },
       include: {
         utente: true,
         colaborador: true,
         servico: true,
-        status: true,
+        status_agendamento: true, // ✅ CERTO
       },
     });
 
-    // Verifique se o status mudou para "cancelado"
+    const normalize = (str?: string) =>
+      (str ?? '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
     const statusMudouParaCancelado =
       agendamentoAtual.statusId !== updateAgendamentoInput.statusId &&
-      updatedAgendamento.status?.descricao?.toLowerCase() === 'cancelado';
+      normalize(updatedAgendamento.status_agendamento?.descricao) ===
+        'cancelado';
+
+    const statusMudouParaConcluido =
+      agendamentoAtual.statusId !== updateAgendamentoInput.statusId &&
+      normalize(updatedAgendamento.status_agendamento?.descricao) ===
+        'concluido';
 
     if (updatedAgendamento.utente?.email) {
       if (statusMudouParaCancelado) {
         await this.notificationService.sendAgendamentoCancelado(
+          updatedAgendamento.utente.email,
+          {
+            data: updatedAgendamento.data_agendamento.toLocaleDateString(),
+            hora: updatedAgendamento.hora_inicio
+              .toLocaleTimeString()
+              .slice(0, 5),
+            ...updatedAgendamento,
+          },
+        );
+      } else if (statusMudouParaConcluido) {
+        await this.notificationService.sendAgendamentoConcluido(
           updatedAgendamento.utente.email,
           {
             data: updatedAgendamento.data_agendamento.toLocaleDateString(),

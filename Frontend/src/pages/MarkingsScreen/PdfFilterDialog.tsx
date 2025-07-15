@@ -5,6 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export function PdfFilterDialog({ colaboradores, onApply, open, onOpenChange }) {
+  // Filtra apenas colaboradores cujo cargo é "Médico"
+  const colaboradoresMedicos = colaboradores?.filter(
+    (c: any) =>
+      typeof c.cargo?.descricao === "string" &&
+      c.cargo.descricao.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() === "medico"
+  ) ?? [];
+
   const hoje = new Date().toISOString().slice(0, 10);
   const [colaboradoresSelecionados, setColaboradoresSelecionados] = React.useState<string[]>([]);
   const [dataInicio, setDataInicio] = React.useState(hoje);
@@ -20,10 +27,10 @@ export function PdfFilterDialog({ colaboradores, onApply, open, onOpenChange }) 
 
   // Função para selecionar ou desmarcar todos
   const handleSelectAll = () => {
-    if (colaboradoresSelecionados.length === colaboradores.length) {
+    if (colaboradoresSelecionados.length === colaboradoresMedicos.length) {
       setColaboradoresSelecionados([]);
     } else {
-      setColaboradoresSelecionados(colaboradores.map((c) => String(c.id)));
+      setColaboradoresSelecionados(colaboradoresMedicos.map((c) => String(c.id)));
     }
   };
 
@@ -46,11 +53,11 @@ export function PdfFilterDialog({ colaboradores, onApply, open, onOpenChange }) 
                 onClick={handleSelectAll}
                 type="button"
               >
-                {colaboradoresSelecionados.length === colaboradores.length ? "Desmarcar Todos" : "Selecionar Todos"}
+                {colaboradoresSelecionados.length === colaboradoresMedicos.length ? "Desmarcar Todos" : "Selecionar Todos"}
               </Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-72 overflow-y-auto">
-              {colaboradores.map((colab) => (
+              {colaboradoresMedicos.map((colab) => (
                 <label
                   key={colab.id}
                   className="flex items-center gap-3 border rounded-lg p-3 shadow-sm bg-white cursor-pointer hover:bg-muted transition-colors"
@@ -114,7 +121,8 @@ export function PdfFilterDialog({ colaboradores, onApply, open, onOpenChange }) 
               onOpenChange(false);
             }}
           >
-            Aplicar Filtros
+            
+            Exportar PDF
           </Button>
         </DialogFooter>
       </DialogContent>

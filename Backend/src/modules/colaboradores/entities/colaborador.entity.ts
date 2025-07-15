@@ -24,5 +24,5 @@ export class Colaborador {
   imagem_url?: string | null;
 
   @Field(() => String)
-  cor: string;
+  cor: string | null;
 }

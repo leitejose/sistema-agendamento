@@ -228,7 +228,7 @@ input CreateAgendamentoInput {
   data_agendamento: String!
   hora_inicio: String!
   hora_fim: String
-  statusId: Int!
+  statusAgendamentoId: Int!
   observacoes: String
   utenteId: Int!
   colaboradorId: Int!
@@ -245,6 +245,7 @@ input UpdateAgendamentoInput {
   colaboradorId: Int!
   servicoId: Int!
   statusId: Int!
+  statusAgendamentoId: Int!
 }
 
 input CreateFeriasInput {

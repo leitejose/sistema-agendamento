@@ -1,5 +1,5 @@
-import { CreateAgendamentoInput } from './create-agendamento.input';
-import { InputType, Field, Int, PartialType } from '@nestjs/graphql';
+import { InputType, Field, Int } from '@nestjs/graphql';
+import { IsNotEmpty } from 'class-validator';
 
 @InputType()
 export class UpdateAgendamentoInput {
@@ -29,4 +29,8 @@ export class UpdateAgendamentoInput {
 
   @Field(() => Int)
   statusId: number;
+
+  @Field(() => Int)
+  @IsNotEmpty()
+  statusAgendamentoId: number;
 }

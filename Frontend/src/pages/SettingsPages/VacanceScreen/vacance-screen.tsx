@@ -8,6 +8,8 @@ import { VacanceForm } from "./vacance-form";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_FERIAS, GET_COLABORADORES } from "@/graphql/queries";
 import { CREATE_FERIAS, REMOVE_FERIAS, UPDATE_FERIAS } from "@/graphql/mutations";
+import { format, parseISO } from "date-fns";
+import CreateMarkingsDialog from "../../MarkingsScreen/create-markings-dialog";
 
 export default function SettingsScreen() {
 	const { data: colaboradoresData, loading: loadingColaboradores } = useQuery(GET_COLABORADORES);
@@ -22,6 +24,7 @@ export default function SettingsScreen() {
 		refetchQueries: [{ query: GET_FERIAS }],
 	});
 	const [editing, setEditing] = useState<any | null>(null);
+	const [openDialog, setOpenDialog] = useState(false); // Estado para controlar o diálogo
 
 	const colaboradores = colaboradoresData?.colaboradores ?? [];
 	const ferias = feriasData?.ferias ?? [];
@@ -83,7 +86,7 @@ export default function SettingsScreen() {
 			id: "periodo",
 			header: "Período",
 			cell: ({ row }: { row: { original: any } }) =>
-				`${row.original.data_inicio?.slice(0, 10)} até ${row.original.data_fim?.slice(0, 10)}`,
+				`${format(parseISO(row.original.data_inicio), "dd/MM/yyyy")} até ${format(parseISO(row.original.data_fim), "dd/MM/yyyy")}`,
 		},
 		{
 			id: "actions",
@@ -113,7 +116,8 @@ export default function SettingsScreen() {
 		<SidebarProvider>
 			<AppSidebar />
 			<SidebarInset>
-				<Header />
+				<Header onNovaMarcacao={() => setOpenDialog(true)} /> {/* Botão Nova Marcação */}
+				<CreateMarkingsDialog open={openDialog} onOpenChange={setOpenDialog} /> {/* Diálogo de Nova Marcação */}
 				<main className="p-4">
 					<div className="pb-4 flex justify-center w-full">
 						<VacanceForm

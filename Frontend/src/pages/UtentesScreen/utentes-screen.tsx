@@ -10,6 +10,7 @@ import { Edit, Trash2 } from "lucide-react";
 
 import CreateUtentesForm from "./create-utente-dialog";
 import { FaFileContract } from "react-icons/fa";
+import CreateMarkingsDialog from "../MarkingsScreen/create-markings-dialog";
 
 export default function Page() {
   const { loading, error, data } = useQuery(GET_UTENTES);
@@ -32,6 +33,8 @@ export default function Page() {
     codigo_postal: "",
     pais: "Portugal",
   });
+
+  const [openDialog, setOpenDialog] = useState(false); // Estado para controlar o diálogo
 
   useEffect(() => {
     if (data?.utentes) {
@@ -206,7 +209,8 @@ export default function Page() {
     <SidebarProvider>
       <AppSidebar setSearchText={setSearchText} />
       <SidebarInset>
-        <Header />
+        <Header onNovaMarcacao={() => setOpenDialog(true)} /> {/* Botão Nova Marcação */}
+        <CreateMarkingsDialog open={openDialog} onOpenChange={setOpenDialog} /> {/* Diálogo de Nova Marcação */}
         <main className="p-4">
           <div className="flex flex-col gap-6">
             <CreateUtentesForm

@@ -20,26 +20,29 @@ export class DisponibilidadesService {
   }
 
   update(id: number, updateDisponibilidadeInput: UpdateDisponibilidadeInput) {
-    return `This action updates a #${id} disponibilidade`;
+    return this.prisma.disponibilidade.update({
+      where: { id },
+      data: {
+        ...updateDisponibilidadeInput,
+      },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} disponibilidade`;
+  async remove(id: number) {
+    return await this.prisma.disponibilidade.delete({
+      where: { id },
+    });
   }
 
   async createMany(data: CreateDisponibilidadeInput[]) {
     await this.prisma.disponibilidade.createMany({
-      data: data.map((d) => ({
-        ...d,
-        hora_inicio: d.hora_inicio, // agora é Date
-        hora_fim: d.hora_fim, // agora é Date
-      })),
+      data,
+      skipDuplicates: true,
     });
-    // Retorne apenas pelo colaborador
+    // Retorne todos do colaborador (ou outro filtro)
     return this.prisma.disponibilidade.findMany({
-      where: {
-        id_colaborador: data[0].id_colaborador,
-      },
+      where: { id_colaborador: data[0].id_colaborador },
+      orderBy: { id: 'desc' },
     });
   }
 
@@ -58,9 +61,6 @@ export class DisponibilidadesService {
         where: { id_colaborador, data_agendamento: dataSelecionada },
       }),
     ]);
-
-    // 2. Use a lógica da função fornecida anteriormente (adapte para async se necessário)
-    // ...cole a função getHorariosDisponiveis aqui, adaptando para usar os dados acima...
 
     // Exemplo de retorno:
     return { horarios: [], mensagem: '' }; // { horarios: string[], mensagem?: string }

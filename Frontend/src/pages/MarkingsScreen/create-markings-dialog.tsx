@@ -27,7 +27,7 @@ import {
   GET_AGENDAMENTOS,
   GET_FERIAS,
 } from "@/graphql/queries";
-import CreateUtenteDialog from "../UtentesScreen/create-utente-dialog";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { CREATE_AGENDAMENTO } from "@/graphql/mutations";
 import { useNavigate } from "react-router-dom";

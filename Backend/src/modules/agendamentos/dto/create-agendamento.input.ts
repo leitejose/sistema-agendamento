@@ -15,9 +15,9 @@ export class CreateAgendamentoInput {
   @IsOptional()
   hora_fim?: string;
 
-  @Field(() => Int) // Alterado para number
+  @Field(() => Int)
   @IsNotEmpty()
-  statusId: number;
+  statusAgendamentoId: number; // <-- Corrija aqui!
 
   @Field({ nullable: true })
   @IsOptional()

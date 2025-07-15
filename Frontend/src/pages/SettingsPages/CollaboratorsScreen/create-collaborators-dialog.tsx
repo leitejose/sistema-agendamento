@@ -22,6 +22,12 @@ import { useQuery } from "@apollo/client";
 import { GET_CARGOS} from "@/graphql/queries";
 import { ColorPicker } from "@/components/ColorPicker";
 
+function getImagemUrl(url?: string) {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  return `http://localhost:3000${url}`;
+}
+
 export function ColaboradorForm({
   onSubmit,
   initialData,
@@ -34,25 +40,38 @@ export function ColaboradorForm({
   const [descricao, setDescricao] = useState(initialData?.descricao || "");
   const [email, setEmail] = useState(initialData?.email || "");
   const [telemovel, setTelemovel] = useState(initialData?.telemovel || "");
-  const [cargoId, setCargoId] = useState(initialData?.cargoId || "");
- const [senha, setSenha] = useState("");
+  const [cargoId, setCargoId] = useState(initialData?.cargoId ? String(initialData.cargoId) : "");
+  const [senha, setSenha] = useState("");
   const [error, setError] = useState("");
-  const [imagemUrl, setImagemUrl] = useState(initialData?.imagem_url || "");
+  const [imagemUrl, setImagemUrl] = useState(getImagemUrl(initialData?.imagem_url));
   const [imagemFile, setImagemFile] = useState<File | null>(null);
   const [cor, setCor] = useState(initialData?.cor || "#1976d2");
 
   const { data: cargosData } = useQuery(GET_CARGOS);
 
   useEffect(() => {
-    setDescricao(initialData?.descricao || "");
-    setEmail(initialData?.email || "");
-    setTelemovel(initialData?.telemovel || "");
-    setCargoId(initialData?.cargoId || "");
+  if (initialData) {
+    setDescricao(initialData.descricao || "");
+    setEmail(initialData.email || "");
+    setTelemovel(initialData.telemovel || "");
+    setCargoId(initialData.cargoId ? String(initialData.cargoId) : "");
+    setImagemUrl(getImagemUrl(initialData.imagem_url));
+    setCor(initialData.cor || "#1976d2");
     setSenha("");
-    setImagemUrl(initialData?.imagem_url || "");
-    setCor(initialData?.cor || "#1976d2");
     setImagemFile(null);
-  }, [initialData]);
+  } else {
+    setDescricao("");
+    setEmail("");
+    setTelemovel("");
+    setCargoId("");
+    setImagemUrl("");
+    setCor("#1976d2");
+    setSenha("");
+    setImagemFile(null);
+  }
+  setError("");
+}, [initialData]);
+
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -77,10 +96,9 @@ export function ColaboradorForm({
         body: formData,
       });
       const data = await response.json();
-      imagem_url = data.url; // URL retornada pelo backend
+      imagem_url = data.url;
     }
 
-    // Só envie imagem_url se for uma URL válida do backend
     if (!imagem_url || imagem_url.startsWith("blob:")) {
       imagem_url = null;
     }
@@ -98,8 +116,14 @@ export function ColaboradorForm({
     if (senha) payload.senha = senha;
     if (initialData?.id) payload.id = initialData.id;
 
-    onSubmit(payload);
-    setError("");
+    // Aguarda o resultado do submit
+    const result = await onSubmit(payload);
+    if (result?.success) {
+      setError("");
+      if (onCancel) onCancel(); // Limpa edição e reseta formulário
+    } else {
+      setError(result?.message || "Erro ao salvar colaborador.");
+    }
   };
 
   return (
@@ -171,10 +195,7 @@ export function ColaboradorForm({
             <div className="flex flex-row space-x-4">
             <div className="flex flex-col space-y-1.5 w-1/2">
               <Label>Cargo</Label>
-              <Select
-  value={cargoId}
-  onValueChange={setCargoId}
->
+              <Select value={cargoId} onValueChange={setCargoId}>
   <SelectTrigger>
     <SelectValue placeholder="Selecione um cargo" />
   </SelectTrigger>
@@ -200,19 +221,18 @@ export function ColaboradorForm({
               </div>
             )}
             </div>
-           
-            {error && <span className="text-red-500 text-sm">{error}</span>}
+            {error && <span className="text-red-500 text-sm">{error }</span>}
           </div>
-          <CardFooter className="flex justify-center mt-4">
-      <Button type="submit">
-        {initialData?.id ? "Alterar" : "Cadastrar"}
-      </Button>
-      {initialData?.id && onCancel && (
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancelar
-        </Button>
-      )}
-    </CardFooter>
+          <CardFooter className="flex justify-center mt-4 gap-4">
+  <Button type="submit">
+    {initialData?.id ? "Alterar" : "Cadastrar"}
+  </Button>
+  {initialData?.id && onCancel && (
+    <Button type="button" variant="outline" onClick={onCancel}>
+      Cancelar
+    </Button>
+  )}
+</CardFooter>
         </form>
       </CardContent>
     </Card>

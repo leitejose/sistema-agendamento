@@ -1,8 +1,8 @@
 // utentes.resolver.ts
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { Utente } from '@prisma/client'; // <- usado internamente apenas
-import { UtenteModel } from './dto/utente.model'; // <- usado no GraphQL
+import { Utente } from '@prisma/client'; // Corrigido
+import { UtenteModel } from './dto/utente.model';
 import { CreateUtenteInput } from './dto/create-utente.input';
 import { UpdateUtenteInput } from './dto/update-utente.input';
 import { UtentesService } from './utentes.service';
@@ -16,6 +16,7 @@ export class UtentesResolver {
 
   @Query(() => [UtenteModel])
   async utentes(): Promise<Utente[]> {
+    // <-- Corrija aqui!
     return this.prisma.utente.findMany();
   }
 
@@ -24,6 +25,7 @@ export class UtentesResolver {
     @Args('id', { type: () => Int }) id: number,
     @Args('updateUtenteInput') updateUtenteInput: UpdateUtenteInput,
   ): Promise<Utente> {
+    // <-- Corrija aqui!
     return this.prisma.utente.update({
       where: { id },
       data: updateUtenteInput,
@@ -34,13 +36,15 @@ export class UtentesResolver {
   async createUtente(
     @Args('data') createUtenteInput: CreateUtenteInput,
   ): Promise<Utente> {
+    // <-- Corrija aqui!
     return this.utentesService.create(createUtenteInput);
   }
 
-  @Mutation(() => UtenteModel) // Use () => UtenteModel
+  @Mutation(() => UtenteModel)
   async removeUtente(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<Utente> {
+    // <-- Corrija aqui!
     try {
       const utente = await this.prisma.utente.delete({
         where: { id },

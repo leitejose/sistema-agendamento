@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -10,8 +10,12 @@ export function DisponibilidadeForm({
   onAddHorario,
   onRemoveHorario,
   onSubmit, // <-- Adicione esta prop!
+  className,
+  diasSemana: diasSemanaProp,
+  disponibilidadeEditando, // <-- Recebe a prop
+  onCancelEdit, // <-- Recebe a prop
 }: any) {
-  const diasSemana = [
+  const diasSemana = diasSemanaProp || [
     "Segunda-feira",
     "Terça-feira",
     "Quarta-feira",
@@ -22,7 +26,7 @@ export function DisponibilidadeForm({
   ];
 
   return (
-    <form className="space-y-6" onSubmit={onSubmit}>
+    <form className={`space-y-6 ${className}`} onSubmit={onSubmit}>
       {/* Select do médico */}
       <select
         className="border rounded p-2 w-full md:w-1/3"
@@ -51,7 +55,8 @@ export function DisponibilidadeForm({
               {horarios.length > 0 ? (
                 horarios.map((horario: any, hIdx: number) => {
                   const isErro =
-                    horario.hora_inicio && horario.hora_fim &&
+                    horario.hora_inicio &&
+                    horario.hora_fim &&
                     horario.hora_inicio >= horario.hora_fim;
 
                   return (
@@ -111,10 +116,25 @@ export function DisponibilidadeForm({
       </div>
 
       {/* Botão para adicionar os horários na tabela */}
-      <div className="flex justify-center">
-        <Button type="submit" variant="default">
-          Salvar Disponibilidade
-        </Button>
+      <div className="flex gap-2 justify-center">
+        {disponibilidadeEditando ? (
+          <>
+            <Button type="submit" variant="default">
+              Alterar
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onCancelEdit}
+            >
+              Cancelar
+            </Button>
+          </>
+        ) : (
+          <Button type="submit" variant="default">
+            Adicionar
+          </Button>
+        )}
       </div>
     </form>
   );

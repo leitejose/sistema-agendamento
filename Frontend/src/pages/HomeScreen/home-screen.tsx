@@ -1,5 +1,4 @@
 import { AppSidebar } from "@/pages/HomeScreen/app-sidebar"
-import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
   SidebarProvider,
@@ -144,8 +143,8 @@ export default function Page() {
           title: `${utente?.nome ?? ""} - ${servico?.descricao ?? ""} - ${colaborador?.descricao ?? ""} - ${hora ?? ""}`,
           start,
           end,
-          backgroundColor: status?.cor ?? "#1976d2",
-          borderColor: status?.cor ?? "#1976d2",
+          backgroundColor: colaborador?.cor ?? "#1976d2",
+          borderColor: colaborador?.cor ?? "#1976d2",
           textColor: "#fff"
         }
       }) ?? []

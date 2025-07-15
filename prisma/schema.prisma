@@ -1,6 +1,0 @@
-model Servico {
-  id        Int     @id @default(autoincrement())
-  descricao String
-  valor     Float
-  duracao   Int
-}

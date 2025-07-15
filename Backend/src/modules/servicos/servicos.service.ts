@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service'; // O PrismaService é responsável pela interação com o banco de dados
+import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateServicoInput } from './dto/create-servico.input';
 import { UpdateServicoInput } from './dto/update-servico.input';
-import { Servico } from '@prisma/client';
+import { Servico } from '@prisma/client'; // Corrigido
 
 @Injectable()
 export class ServicosService {
@@ -23,7 +23,7 @@ export class ServicosService {
       this.prisma.servico.findUnique({
         where: { id },
       }) ?? null
-    ); // Garantindo que o Prisma nunca retorne um valor nulo inesperado.
+    );
   }
 
   async update(

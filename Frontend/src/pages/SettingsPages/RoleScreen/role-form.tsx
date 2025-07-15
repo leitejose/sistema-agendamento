@@ -1,4 +1,4 @@
-import * as React from "react";
+
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
@@ -13,8 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Edit } from "lucide-react";
+
 
 export function RoleForm({
   onAddRole,
@@ -71,6 +70,8 @@ export function RoleForm({
                 {...register("descricao")}
               />
             </div>
+            {/* Permissões desativadas para futura implementação */}
+            {/*
             <div className="flex flex-col space-y-1.5">
               {permissoes.map((p) => (
                 <label key={p.id} className="flex items-center gap-2 mb-1">
@@ -83,10 +84,11 @@ export function RoleForm({
                 </label>
               ))}
             </div>
+            */}
           </div>
         </form>
       </CardContent>
-      <CardFooter className="flex justify-center">
+      <CardFooter className="flex justify-center gap-4">
         <Button onClick={handleSubmit(onSubmit)}>
           {cargoEditando ? "Alterar" : "Adicionar"}
         </Button>

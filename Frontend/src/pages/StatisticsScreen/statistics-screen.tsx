@@ -1,4 +1,3 @@
-import { MenuComponent } from "@/components/nav-menu";
 import { CardsData } from "./cards-data";
 import { BarComponent } from "./bar-chart";
 import { CardDoctor } from "./card-appointments-by-doctor";

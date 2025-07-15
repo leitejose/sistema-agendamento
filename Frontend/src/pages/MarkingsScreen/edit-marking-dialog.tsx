@@ -25,7 +25,6 @@ import {
 } from "@/graphql/queries";
 import { UPDATE_AGENDAMENTO } from "@/graphql/mutations";
 import { Card, CardContent } from "@/components/ui/card";
-import CreateUtenteDialog from "../UtentesScreen/create-utente-dialog";
 
 type FormData = {
   id: number;
@@ -41,7 +40,7 @@ type FormData = {
 
 const formatDateForInput = (date: string): string => {
   const d = new Date(date);
-  return d.toISOString().split('T')[0];
+  return d.toISOString().split("T")[0];
 };
 
 export default function EditMarkingsDialog({
@@ -55,9 +54,25 @@ export default function EditMarkingsDialog({
   onClose: () => void;
   onSave: (updatedAgendamento: FormData) => void;
 }) {
-  const [formData, setFormData] = useState<FormData | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
+    id: agendamento?.id || 0,
+    id_utente: agendamento?.id_utente || "",
+    id_colaborador: agendamento?.id_colaborador || "",
+    id_servicos: agendamento?.id_servicos || "",
+    data_agendamento: agendamento?.data_agendamento
+      ? formatDateForInput(agendamento.data_agendamento)
+      : "",
+    hora_inicio: agendamento?.hora_inicio || "",
+    hora_fim: agendamento?.hora_fim || "",
+    statusId: agendamento?.statusId || "",
+    observacoes: agendamento?.observacoes || "",
+  });
+
+  const [selectedTime, setSelectedTime] = useState<string | null>(
+    agendamento?.hora_inicio?.slice(0, 5) || null
+  );
+
+  const [utenteInfo, setUtenteInfo] = useState<{ email: string; telemovel: string } | null>(null);
 
   const { data: utentesData, loading: utentesLoading } = useQuery(GET_UTENTES);
   const { data: colaboradoresData, loading: colaboradoresLoading } = useQuery(GET_COLABORADORES);
@@ -65,47 +80,52 @@ export default function EditMarkingsDialog({
 
   const [updateAgendamento, { loading: updateLoading, error: updateError }] = useMutation(UPDATE_AGENDAMENTO);
 
+  // Atualiza formData e selectedTime dinamicamente com base no agendamento
   useEffect(() => {
     if (agendamento) {
       setFormData({
-        ...agendamento,
-        id_colaborador: String(agendamento.id_colaborador ?? ""),
-        id_servicos: String(agendamento.id_servicos ?? ""),
-        id_utente: String(agendamento.id_utente ?? ""),
-        statusId: String(agendamento.statusId ?? ""),
-        data_agendamento: formatDateForInput(agendamento.data_agendamento),
+        id: agendamento.id,
+        id_utente: agendamento.id_utente || "",
+        id_colaborador: agendamento.id_colaborador || "",
+        id_servicos: agendamento.id_servicos || "",
+        data_agendamento: agendamento.data_agendamento
+          ? formatDateForInput(agendamento.data_agendamento)
+          : "",
+        hora_inicio: agendamento.hora_inicio || "",
+        hora_fim: agendamento.hora_fim || "",
+        statusId: agendamento.statusId || "",
+        observacoes: agendamento.observacoes || "",
       });
 
-      // Pega o horário no formato "HH:MM" do campo hora_inicio
-      const hora = agendamento.hora_inicio;
-      let horaFormatada = "";
-      if (hora) {
-        // Suporta formatos "2024-06-27T09:00:00.000Z" ou "09:00:00"
-        const match = hora.match(/(\d{2}):(\d{2})/);
-        if (match) {
-          horaFormatada = `${match[1]}:${match[2]}`;
-        }
-      }
-      setSelectedTime(horaFormatada);
+      setSelectedTime(agendamento.hora_inicio?.slice(0, 5) || null);
     }
   }, [agendamento]);
 
-  if (!formData) return null;
-
-  const utenteInfo = utentesData?.utentes.find(
-    (u: any) => String(u.id) === String(formData.id_utente)
-  );
+  // Atualiza utenteInfo dinamicamente com base no id_utente
+  useEffect(() => {
+    if (formData.id_utente && utentesData?.utentes) {
+      const selectedUtente = utentesData.utentes.find((u: any) => u.id === formData.id_utente);
+      if (selectedUtente) {
+        setUtenteInfo({
+          email: selectedUtente.email,
+          telemovel: selectedUtente.telemovel,
+        });
+      } else {
+        setUtenteInfo(null); // Limpa caso não encontre o utente
+      }
+    }
+  }, [formData.id_utente, utentesData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setFormData((prev) => prev ? { ...prev, [id]: value } : prev);
+    setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
   const handleTimeSelect = (time: string) => {
     const start = `${time}:00`;
     let end = start;
 
-    if (servicosData && formData?.id_servicos) {
+    if (servicosData && formData.id_servicos) {
       const servico = servicosData.servicos.find((s: any) => s.id === formData.id_servicos);
       if (servico) {
         const duracao = Number(servico.duracao);
@@ -117,65 +137,48 @@ export default function EditMarkingsDialog({
       }
     }
 
-    setFormData((prev) => prev ? { ...prev, hora_inicio: start, hora_fim: end } : prev);
+    setFormData((prev) => ({ ...prev, hora_inicio: start, hora_fim: end }));
     setSelectedTime(time);
   };
 
   const handleSave = async () => {
-    if (!formData) return;
-
     try {
-      const extractDateOnly = (dateString: string): string => {
-        return dateString.split('T')[0];
-      };
-      const extractTimeOnly = (timeString: string): string => {
-        if (timeString.includes('T')) {
-          return timeString.split('T')[1].split(':').slice(0, 2).join(':');
-        }
-        return timeString.split(':').slice(0, 2).join(':');
-      };
-      const combineDateTime = (date: string, time: string): string => {
-        return `${date}T${extractTimeOnly(time)}:00.000Z`;
-      };
-      const baseDate = extractDateOnly(formData.data_agendamento);
+      // Validação: Verifique se os horários foram selecionados
+      if (!formData.hora_inicio || !formData.hora_fim) {
+        alert("Por favor, selecione um horário.");
+        return;
+      }
 
-      const dadosAtualizados = {
-        id: Number(formData.id),
-        data_agendamento: `${baseDate}T00:00:00.000Z`,
-        hora_inicio: combineDateTime(baseDate, formData.hora_inicio),
-        hora_fim: formData.hora_fim ? combineDateTime(baseDate, formData.hora_fim) : undefined,
-        observacoes: formData.observacoes || "",
+      const updatedData = {
+        id: formData.id,
         utenteId: Number(formData.id_utente),
-        colaboradorId: formData.id_colaborador ? Number(formData.id_colaborador) : undefined,
-        servicoId: formData.id_servicos ? Number(formData.id_servicos) : undefined,
-        statusId: Number(formData.statusId)
+        colaboradorId: Number(formData.id_colaborador),
+        servicoId: Number(formData.id_servicos),
+        data_agendamento: new Date(formData.data_agendamento).toISOString(), // Converte para ISO string
+        hora_inicio: formData.hora_inicio, // Mantém como string no formato HH:mm:ss
+        hora_fim: formData.hora_fim, // Mantém como string no formato HH:mm:ss
+        statusId: Number(formData.statusId), 
+        statusAgendamentoId: Number(formData.statusId),
+        observacoes: formData.observacoes,
       };
-
-      console.log("Dados formatados para envio (formato exato do playground):", dadosAtualizados);
 
       const result = await updateAgendamento({
-  variables: {
-    updateAgendamentoInput: dadosAtualizados
-  }
-});
+        variables: { updateAgendamentoInput: updatedData },
+      });
 
-console.log("Resultado da atualização:", result);
+      const updated = result.data?.updateAgendamento;
+      if (!updated) {
+        alert("Erro: atualização não retornou dados.");
+        return;
+      }
 
-const updated = result.data?.updateAgendamento;
-if (!updated) {
-  alert("Erro: atualização não retornou dados.");
-  return;
-}
-
-onSave(updated); // ✅ Corrigido aqui
-setIsDialogOpen(false);
-
-} catch (error) {
-  console.error("Erro ao atualizar agendamento:", error);
-  alert("Erro ao atualizar agendamento. Verifique os dados e tente novamente.");
-  
-}
-};
+      onSave(updated);
+      onClose();
+    } catch (error) {
+      console.error("Erro ao atualizar agendamento:", error);
+      alert("Erro ao atualizar agendamento. Verifique os dados e tente novamente.");
+    }
+  };
 
   const availableTimes = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
 
@@ -194,10 +197,8 @@ setIsDialogOpen(false);
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="id_colaborador" className="text-right">Colaborador</Label>
               <Select
-                value={formData.id_colaborador}
-                onValueChange={(value) =>
-                  setFormData((prev) => prev ? { ...prev, id_colaborador: value } : prev)
-                }
+                value={String(formData.id_colaborador)}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, id_colaborador: value }))}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione um colaborador" />
@@ -218,9 +219,9 @@ setIsDialogOpen(false);
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="id_servicos" className="text-right">Serviço</Label>
               <Select
-                value={formData.id_servicos}
+                value={String(formData.id_servicos)}
                 onValueChange={(value) => {
-                  setFormData((prev) => prev ? { ...prev, id_servicos: value } : prev);
+                  setFormData((prev) => ({ ...prev, id_servicos: value }));
                   if (selectedTime) handleTimeSelect(selectedTime);
                 }}
               >
@@ -242,15 +243,21 @@ setIsDialogOpen(false);
             {/* Data */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="data_agendamento" className="text-right">Data</Label>
-              <input
+              <Input
+                id="data_agendamento"
                 type="date"
-                value={formatDateForInput(formData.data_agendamento)}
-                onChange={(e) => setFormData({ ...formData, data_agendamento: e.target.value })}
+                value={formData.data_agendamento}
+                onChange={handleInputChange}
                 className="col-span-3"
               />
             </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="data_agendamento" className="text-right">Hora</Label>
+              <Input className="col-span-3"
+              type="" value={(formData.hora_inicio.slice(11,16) ) || ""} disabled />
+            </div>
 
-            {/* Horários */}
+            {/* Horários Disponíveis */}
             <div>
               <Label>Horários Disponíveis</Label>
               <div className="flex flex-wrap gap-2">
@@ -278,10 +285,8 @@ setIsDialogOpen(false);
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="id_utente" className="text-right">Utente</Label>
                 <Select
-                  value={formData.id_utente}
-                  onValueChange={(value) =>
-                    setFormData((prev) => prev ? { ...prev, id_utente: value } : prev)
-                  }
+                  value={String(formData.id_utente)}
+                  onValueChange={(value) => setFormData((prev) => ({ ...prev, id_utente: value }))}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Selecione um utente" />
@@ -291,21 +296,11 @@ setIsDialogOpen(false);
                       <SelectItem value="" disabled>Carregando...</SelectItem>
                     ) : (
                       utentesData?.utentes.map((utente: any) => (
-                        <SelectItem key={utente.id} value={String(utente.id)}>
-                          {utente.nome}
-                        </SelectItem>
+                        <SelectItem key={utente.id} value={String(utente.id)}>{utente.nome}</SelectItem>
                       ))
                     )}
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="col-span-4 text-right">
-                <CreateUtenteDialog>
-                  <Button variant="outline" size="sm" className="mt-2">
-                    Adicionar Novo Utente
-                  </Button>
-                </CreateUtenteDialog>
               </div>
             </div>
 

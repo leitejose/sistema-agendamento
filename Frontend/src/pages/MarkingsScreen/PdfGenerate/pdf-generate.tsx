@@ -40,6 +40,10 @@ export default function PdfGenerate() {
     dataFim: params.get("dataFim") || "",
   };
 
+  const colaboradoresSelecionados = params.get("colaboradores")
+  ? params.get("colaboradores").split(",").map(id => id.trim())
+  : [];
+
   const { data: agData, loading: loadingAg } = useQuery(GET_AGENDAMENTOS);
   const { data: utentesData } = useQuery(GET_UTENTES);
   const { data: colaboradoresData } = useQuery(GET_COLABORADORES);
@@ -53,8 +57,11 @@ export default function PdfGenerate() {
     if (!agData?.getAgendamentos) return [];
     return agData.getAgendamentos
       .filter((ag: any) => {
-        // Filtro por colaborador
-        if (filtros.colaborador && filtros.colaborador !== "" && String(ag.id_colaborador) !== String(filtros.colaborador)) {
+        // Filtro por colaborador (agora aceita vários)
+        if (
+          colaboradoresSelecionados.length > 0 &&
+          !colaboradoresSelecionados.includes(String(ag.id_colaborador))
+        ) {
           return false;
         }
         // Filtro por data início

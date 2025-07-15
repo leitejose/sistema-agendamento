@@ -4,10 +4,10 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Header } from "@/components/header";
 import { DisponibilidadeForm } from "./availability-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DisponibilidadeTable } from "./availability-table";
 import { useMutation, useQuery } from "@apollo/client";
-import { CREATE_DISPONIBILIDADE } from "@/graphql/mutations";
+import { CREATE_DISPONIBILIDADE, UPDATE_DISPONIBILIDADE, DELETE_DISPONIBILIDADE } from "@/graphql/mutations";
 import { GET_COLABORADORES, GET_DISPONIBILIDADES } from "@/graphql/queries";
+import CreateMarkingsDialog from "@/pages/MarkingsScreen/create-markings-dialog";
 
 const diasSemana = [
   "Segunda-feira",
@@ -35,15 +35,22 @@ export default function DisponibilidadeScreen() {
   const [createDisponibilidade] = useMutation(CREATE_DISPONIBILIDADE, {
     refetchQueries: [{ query: GET_DISPONIBILIDADES }],
   });
+  const [updateDisponibilidade] = useMutation(UPDATE_DISPONIBILIDADE, {
+    refetchQueries: [{ query: GET_DISPONIBILIDADES }],
+  });
+  const [deleteDisponibilidade] = useMutation(DELETE_DISPONIBILIDADE, {
+    refetchQueries: [{ query: GET_DISPONIBILIDADES }],
+  });
 
-  // Só inicializa quando colaboradores carregarem
+  const [openDialog, setOpenDialog] = useState(false); // Estado para controlar o diálogo
   const [disponibilidade, setDisponibilidade] = useState({
     colaboradorId: "",
     dias: [[], [], [], [], [], [], []],
   });
   const [disponibilidadesState, setDisponibilidades] = useState<Disponibilidade[]>([]);
+  const [disponibilidadeEditando, setDisponibilidadeEditando] = useState<Disponibilidade | null>(null);
 
-  // Atualiza colaboradorId inicial quando colaboradores carregarem
+  // Só inicializa quando colaboradores carregarem
   useEffect(() => {
     if (colaboradores.length > 0 && !disponibilidade.colaboradorId) {
       setDisponibilidade((prev) => ({
@@ -60,68 +67,71 @@ export default function DisponibilidadeScreen() {
     }));
   };
 
-  const onAddHorario = (diaIdx: number) => {
-    setDisponibilidade(prev => {
-      const novo = { ...prev };
-      novo.dias = novo.dias.map((d, i) =>
-        i === diaIdx ? [...(d || []), { hora_inicio: "", hora_fim: "" }] : d || []
-      );
-      return novo;
-    });
-  };
-
-  const onChangeHorario = (diaIdx: number, hIdx: number, campo: string, valor: string) => {
-    setDisponibilidade(prev => {
-      const novo = { ...prev };
-      novo.dias = novo.dias.map((d, i) =>
-        i === diaIdx
-          ? d.map((h: any, j: number) =>
-              j === hIdx ? { ...h, [campo]: valor } : h
-            )
-          : d
-      );
-      return novo;
-    });
-  };
-
-  const onRemoveHorario = (diaIdx: number, hIdx: number) => {
-    setDisponibilidade(prev => {
-      const novo = { ...prev };
-      novo.dias = novo.dias.map((d, i) =>
-        i === diaIdx ? d.filter((_, j: number) => j !== hIdx) : d
-      );
-      return novo;
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const novasDisponibilidades = [];
+    const novasDisponibilidades = [];
 
-  disponibilidade.dias.forEach((horarios, diaIdx) => {
-    horarios.forEach((horario: any) => {
-      if (horario.hora_inicio && horario.hora_fim) {
-        novasDisponibilidades.push({
-          id_colaborador: disponibilidade.colaboradorId,
-          dia_da_semana: diaIdx,
-          hora_inicio: `1970-01-01T${horario.hora_inicio.length === 5 ? horario.hora_inicio + ':00' : horario.hora_inicio}.000Z`, // <- 👈 adiciona os segundos
-          hora_fim: `1970-01-01T${horario.hora_fim.length === 5 ? horario.hora_fim + ':00' : horario.hora_fim}.000Z`,
-        });
-      }
+    disponibilidade.dias.forEach((horarios, diaIdx) => {
+      horarios.forEach((horario: any) => {
+        if (horario.hora_inicio && horario.hora_fim) {
+          novasDisponibilidades.push({
+            id_colaborador: disponibilidade.colaboradorId,
+            dia_da_semana: diaIdx,
+            hora_inicio: `1970-01-01T${horario.hora_inicio.length === 5 ? horario.hora_inicio + ':00' : horario.hora_inicio}.000Z`,
+            hora_fim: `1970-01-01T${horario.hora_fim.length === 5 ? horario.hora_fim + ':00' : horario.hora_fim}.000Z`,
+          });
+        }
+      });
     });
-  });
 
-  if (novasDisponibilidades.length > 0) {
-    await createDisponibilidade({ variables: { data: novasDisponibilidades } });
-  }
+    if (novasDisponibilidades.length > 0) {
+      await createDisponibilidade({ variables: { data: novasDisponibilidades } });
+    }
 
-  setDisponibilidade({
-    colaboradorId: colaboradores[0]?.id ?? "",
-    dias: [[], [], [], [], [], [], []],
-  });
-};
+    setDisponibilidade({
+      colaboradorId: colaboradores[0]?.id ?? "",
+      dias: [[], [], [], [], [], [], []],
+    });
+  };
 
+  const handleCancelEdit = () => {
+    setDisponibilidadeEditando(null);
+    setDisponibilidade({
+      colaboradorId: colaboradores[0]?.id ?? "",
+      dias: [[], [], [], [], [], [], []],
+    });
+  };
+
+  const handleUpdateDisponibilidade = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!disponibilidadeEditando) return;
+
+    const diaIdx = disponibilidade.dias.findIndex(d => d.length > 0);
+    const horario = disponibilidade.dias[diaIdx][0];
+
+    await updateDisponibilidade({
+      variables: {
+        updateDisponibilidadeInput: {
+          id: disponibilidadeEditando.id,
+          id_colaborador: Number(disponibilidade.colaboradorId),
+          dia_da_semana: diaIdx,
+          hora_inicio: `1970-01-01T${horario.hora_inicio.length === 5 ? horario.hora_inicio + ':00' : horario.hora_inicio}.000Z`,
+          hora_fim: `1970-01-01T${horario.hora_fim.length === 5 ? horario.hora_fim + ':00' : horario.hora_fim}.000Z`,
+        }
+      },
+    });
+
+    handleCancelEdit();
+  };
+
+  const handleDeleteDisponibilidade = async (id: number) => {
+    const confirmed = window.confirm("Tem certeza que deseja excluir esta disponibilidade?");
+    if (!confirmed) return;
+    await deleteDisponibilidade({
+      variables: { id },
+    });
+  };
 
   if (loadingColaboradores) return <div>Carregando colaboradores...</div>;
 
@@ -129,7 +139,8 @@ export default function DisponibilidadeScreen() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <Header />
+        <Header onNovaMarcacao={() => setOpenDialog(true)} /> {/* Botão Nova Marcação */}
+        <CreateMarkingsDialog open={openDialog} onOpenChange={setOpenDialog} /> {/* Diálogo de Nova Marcação */}
         <main className="p-4">
           <Card>
             <CardHeader>
@@ -141,11 +152,13 @@ export default function DisponibilidadeScreen() {
                 colaboradores={colaboradores}
                 diasSemana={diasSemana}
                 onColaboradorChange={handleColaboradorChange}
-                onSubmit={handleSubmit}
-                onAddHorario={onAddHorario}
-                onChangeHorario={onChangeHorario}
-                onRemoveHorario={onRemoveHorario}
+                onSubmit={disponibilidadeEditando ? handleUpdateDisponibilidade : handleSubmit}
+                onAddHorario={(diaIdx) => {}}
+                onChangeHorario={(diaIdx, hIdx, campo, valor) => {}}
+                onRemoveHorario={(diaIdx, hIdx) => {}}
                 className="mt-8"
+                disponibilidadeEditando={disponibilidadeEditando}
+                onCancelEdit={handleCancelEdit}
               />
             </CardContent>
           </Card>
@@ -155,11 +168,7 @@ export default function DisponibilidadeScreen() {
               <CardTitle>Lista de Disponibilidades</CardTitle>
             </CardHeader>
             <CardContent>
-              <DisponibilidadeTable
-                disponibilidades={disponibilidades}
-                colaboradores={colaboradores}
-                diasSemana={diasSemana}
-              />
+              {/* Tabela de Disponibilidades */}
             </CardContent>
           </Card>
         </main>

@@ -2,17 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service'; // Corrigir o caminho do import
 import { CreateCargoInput } from './dto/create-cargo.input';
 import { UpdateCargoInput } from './dto/update-cargo.input';
-import { Cargo, Permissao } from '@prisma/client'; // Importando os tipos corretos gerados pelo Prisma
+import { Cargo, Permissao } from '@prisma/client'; // Corrigido
 
 @Injectable()
 export class CargoService {
   constructor(private prisma: PrismaService) {}
 
   async create(createCargoInput: CreateCargoInput): Promise<Cargo | null> {
+    // <-- Corrija aqui!
     const { descricao, permissoesIds } = createCargoInput;
 
     // Cria o cargo sem permissões
-    const cargo = await this.prisma.cargo.create({
+    const novoCargo = await this.prisma.cargo.create({
       data: { descricao },
     });
 
@@ -20,7 +21,7 @@ export class CargoService {
     if (permissoesIds && permissoesIds.length > 0) {
       await this.prisma.cargoPermissoes.createMany({
         data: permissoesIds.map((permissaoId: number) => ({
-          cargoId: cargo.id,
+          cargoId: novoCargo.id,
           permissaoId,
         })),
         skipDuplicates: true,
@@ -29,18 +30,18 @@ export class CargoService {
 
     // Retorna o cargo com as permissões
     return this.prisma.cargo.findUnique({
-      where: { id: cargo.id },
+      where: { id: novoCargo.id },
       include: { permissoes: true },
     });
   }
 
   async findAll(): Promise<Cargo[]> {
-    // Usando o tipo 'cargo' gerado pelo Prisma
+    // <-- Corrija aqui!
     return this.prisma.cargo.findMany();
   }
 
   async findOne(id: number): Promise<Cargo | null> {
-    // Usando o tipo 'cargo' gerado pelo Prisma
+    // <-- Corrija aqui!
     return this.prisma.cargo.findUnique({
       where: { id },
     });
@@ -50,21 +51,20 @@ export class CargoService {
     id: number,
     updateCargoInput: UpdateCargoInput,
   ): Promise<Cargo | null> {
+    // <-- Corrija aqui!
     const { descricao, permissoesIds } = updateCargoInput;
 
     // Atualiza o cargo (descricao)
-    const cargo = await this.prisma.cargo.update({
+    const novoCargo = await this.prisma.cargo.update({
       where: { id },
       data: { descricao },
     });
 
     if (permissoesIds) {
-      // Remove todas as permissões antigas
       await this.prisma.cargoPermissoes.deleteMany({
         where: { cargoId: id },
       });
 
-      // Cria as novas permissões
       await this.prisma.cargoPermissoes.createMany({
         data: permissoesIds.map((permissaoId: number) => ({
           cargoId: id,
@@ -74,7 +74,6 @@ export class CargoService {
       });
     }
 
-    // Retorna o cargo atualizado com as permissões
     return this.prisma.cargo.findUnique({
       where: { id },
       include: { permissoes: true },
@@ -82,13 +81,14 @@ export class CargoService {
   }
 
   async remove(id: number): Promise<Cargo> {
-    // Usando o tipo 'cargo' gerado pelo Prisma
+    // <-- Corrija aqui!
     return this.prisma.cargo.delete({
       where: { id },
     });
   }
 
   async getPermissoesByCargoId(cargoId: number): Promise<Permissao[]> {
+    // <-- Corrija aqui!
     const permissoes = await this.prisma.cargoPermissoes.findMany({
       where: { cargoId },
       include: { permissao: true },

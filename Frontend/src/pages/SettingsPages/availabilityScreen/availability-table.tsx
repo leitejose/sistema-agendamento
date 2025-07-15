@@ -1,6 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Edit, Trash2 } from "lucide-react";
 
-export function DisponibilidadeTable({ disponibilidades, colaboradores, diasSemana }: any) {
+export function DisponibilidadeTable({ disponibilidades, colaboradores, diasSemana, onEdit, onDelete }: any) {
   // Agrupa as disponibilidades por colaborador
   const disponibilidadesPorColaborador = colaboradores.map((colab: any) => ({
     ...colab,
@@ -9,12 +10,12 @@ export function DisponibilidadeTable({ disponibilidades, colaboradores, diasSema
 
   function formatHora(hora: any) {
     if (!hora) return "";
-    const date = typeof hora === "string" ? new Date(hora) : hora;
-    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    // Se vier como "1970-01-01T14:00:00.000Z", pega só HH:mm
+    if (typeof hora === "string" && hora.length >= 16) {
+      return hora.slice(11, 16);
+    }
+    return hora; // Se já for string HH:mm
   }
-
-  console.log("disponibilidades:", disponibilidades);
-  console.log("colaboradores:", colaboradores);
 
   return (
     <div className="space-y-8">
@@ -35,12 +36,13 @@ export function DisponibilidadeTable({ disponibilidades, colaboradores, diasSema
               <TableRow>
                 <TableHead className="text-sm">Dia</TableHead>
                 <TableHead className="text-sm">Horário</TableHead>
+                <TableHead className="text-sm">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {colab.disponibilidades.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={2} className="text-center text-muted-foreground text-sm">
+                  <TableCell colSpan={3} className="text-center text-muted-foreground text-sm">
                     Nenhuma disponibilidade cadastrada.
                   </TableCell>
                 </TableRow>
@@ -52,6 +54,22 @@ export function DisponibilidadeTable({ disponibilidades, colaboradores, diasSema
                       <TableCell className="text-sm">{diasSemana[disp.dia_da_semana]}</TableCell>
                       <TableCell className="text-sm">
                         {formatHora(disp.hora_inicio)} - {formatHora(disp.hora_fim)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => onEdit && onEdit(disp)}
+                            className="text-500 hover:underline"
+                          >
+                            <Edit />
+                          </button>
+                          <button
+                            onClick={() => onDelete && onDelete(disp.id)}
+                            className="text-red-500 hover:underline"
+                          >
+                            <Trash2 />
+                          </button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
-export function ColorPicker({ value, onChange, label = "Cor" }: { value: string, onChange: (v: string) => void, label?: string }) {
+
+export function ColorPicker({ value, onChange}: { value: string, onChange: (v: string) => void, label?: string }) {
   return (
     <div className="flex flex-col space-y-1.5 w-1/2">
 

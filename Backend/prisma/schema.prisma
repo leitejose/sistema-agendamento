@@ -11,16 +11,16 @@ model StatusAgendamento {
   id          Int           @id @default(autoincrement())
   descricao   String
   cor         String
-  agendamento agendamento[]
+  agendamento Agendamento[]
 
   @@map("status_agendamento")
 }
 
 model CargoPermissoes {
-  cargoId     Int       @map("cargo_id")
-  permissaoId Int       @map("permissao_id")
-  cargo       cargo     @relation(fields: [cargoId], references: [id], onDelete: Cascade, map: "FK_57b474c85ecbfcd6cc421f46e81")
-  permissao   permissao @relation(fields: [permissaoId], references: [id], onDelete: Cascade, map: "FK_cee926c9f8446750c17f7d6356b")
+  cargoId     Int
+  permissaoId Int
+  cargo       Cargo     @relation(fields: [cargoId], references: [id], onDelete: Cascade, map: "FK_57b474c85ecbfcd6cc421f46e81")
+  permissao   Permissao @relation(fields: [permissaoId], references: [id], onDelete: Cascade, map: "FK_cee926c9f8446750c17f7d6356")
 
   @@id([cargoId, permissaoId])
   @@index([cargoId], map: "IDX_57b474c85ecbfcd6cc421f46e8")
@@ -35,13 +35,13 @@ model Ferias {
   data_fim       DateTime    @db.Date
   colaborador_id Int
   created_at     DateTime?   @default(now()) @db.DateTime(0)
-  colaborador    colaborador @relation(fields: [colaborador_id], references: [id], map: "fk_ferias_colaborador")
+  colaborador    Colaborador @relation(fields: [colaborador_id], references: [id], map: "fk_ferias_colaborador")
 
   @@index([colaborador_id], map: "fk_ferias_colaborador")
   @@map("ferias")
 }
 
-model agendamento {
+model Agendamento {
   id                 Int               @id @default(autoincrement())
   id_utente          Int
   id_servicos        Int
@@ -54,9 +54,9 @@ model agendamento {
   observacoes        String?
   statusId           Int
   status_agendamento StatusAgendamento @relation(fields: [statusId], references: [id], map: "Agendamento_statusId_fkey")
-  colaborador        colaborador       @relation(fields: [id_colaborador], references: [id], map: "FK_Agendamento_Colaborador")
-  servico            servico           @relation(fields: [id_servicos], references: [id], map: "FK_Agendamento_Servico")
-  utente             utente            @relation(fields: [id_utente], references: [id], map: "FK_Agendamento_Utente")
+  colaborador        Colaborador       @relation(fields: [id_colaborador], references: [id], map: "FK_Agendamento_Colaborador")
+  servico            Servico           @relation(fields: [id_servicos], references: [id], map: "FK_Agendamento_Servico")
+  utente             Utente            @relation(fields: [id_utente], references: [id], map: "FK_Agendamento_Utente")
 
   @@index([statusId], map: "Agendamento_statusId_fkey")
   @@index([id_colaborador], map: "FK_Agendamento_Colaborador")
@@ -64,56 +64,56 @@ model agendamento {
   @@index([id_utente], map: "FK_Agendamento_Utente")
 }
 
-model cargo {
+model Cargo {
   id          Int               @id @default(autoincrement())
   descricao   String            @db.VarChar(255)
   permissoes  CargoPermissoes[]
-  colaborador colaborador[]
+  colaborador Colaborador[]
 }
 
-model colaborador {
-  id              Int               @id @default(autoincrement())
+model Colaborador {
+  id              Int                @id @default(autoincrement())
   cargoId         Int?
-  descricao       String            @db.VarChar(255)
-  email           String            @unique(map: "IDX_2c7cab1392c28313e5880d941b") @db.VarChar(255)
-  telemovel       String            @db.VarChar(255)
-  senha           String            @db.VarChar(255)
-  imagem_url      String?           @db.VarChar(255)
-  cor             String?           @db.VarChar(22)
-  agendamento     agendamento[]
-  cargo           cargo?            @relation(fields: [cargoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_084fb63ed0f5810c87764c3987c")
-  disponibilidade disponibilidade[]
+  descricao       String             @db.VarChar(255)
+  email           String             @unique(map: "IDX_2c7cab1392c28313e5880d941b") @db.VarChar(255)
+  telemovel       String             @db.VarChar(255)
+  senha           String             @db.VarChar(255)
+  imagem_url      String?            @db.VarChar(255)
+  cor             String?            @db.VarChar(22)
+  agendamento     Agendamento[]
+  cargo           Cargo?             @relation(fields: [cargoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_084fb63ed0f5810c87764c3987c")
+  disponibilidade Disponibilidade[]
   Ferias          Ferias[]
 
   @@index([cargoId], map: "FK_084fb63ed0f5810c87764c3987c")
 }
 
-model disponibilidade {
+model Disponibilidade {
   id             Int         @id @default(autoincrement())
   id_colaborador Int
   dia_da_semana  Int         @db.TinyInt
   hora_inicio    DateTime    @db.Time(0)
   hora_fim       DateTime    @db.Time(0)
-  colaborador    colaborador @relation(fields: [id_colaborador], references: [id], map: "Disponibilidade_id_colaborador_fkey")
+  colaborador    Colaborador @relation(fields: [id_colaborador], references: [id], map: "Disponibilidade_id_colaborador_fkey")
 
   @@index([id_colaborador], map: "Disponibilidade_id_colaborador_fkey")
 }
 
-model permissao {
+model Permissao {
   id        Int               @id @default(autoincrement())
   descricao String            @db.VarChar(255)
   cargos    CargoPermissoes[]
 }
 
-model servico {
+model Servico {
   id          Int           @id @default(autoincrement())
   descricao   String        @db.VarChar(45)
   valor       Decimal       @db.Decimal(10, 2)
   duracao     Float
-  agendamento agendamento[]
+  agendamento Agendamento[]
 }
 
-model utente {
+model Utente {
   id            Int           @id @default(autoincrement())
   nome          String
   email         String
@@ -123,5 +123,5 @@ model utente {
   codigo_postal String?
   concelho      String?
   morada        String?
-  agendamento   agendamento[]
+  agendamento   Agendamento[]
 }

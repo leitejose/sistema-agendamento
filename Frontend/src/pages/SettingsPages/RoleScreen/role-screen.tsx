@@ -11,6 +11,7 @@ import { RoleForm } from "./role-form";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_CARGOS, GET_PERMISSOES } from "@/graphql/queries";
 import { CREATE_CARGO, UPDATE_CARGO, REMOVE_CARGO } from "@/graphql/mutations";
+import CreateMarkingsDialog from "../../MarkingsScreen/create-markings-dialog";
 
 export default function RoleScreen() {
   const { data: cargosData, loading: loadingCargos } = useQuery(GET_CARGOS);
@@ -24,6 +25,7 @@ export default function RoleScreen() {
   const permissoes = permissoesData?.permissoes ?? [];
 
   const [cargoEditando, setCargoEditando] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false); // Estado para controlar o diálogo
 
   const handleAddRole = async ({ descricao, permissoesIds }) => {
     await createCargo({
@@ -80,22 +82,6 @@ export default function RoleScreen() {
       cell: (info: { getValue: () => any }) => info.getValue(),
     },
     {
-      accessorKey: "permissoes",
-      header: "Permissões",
-      cell: ({ row }: { row: { original: any } }) => (
-        <div className="flex flex-wrap gap-1">
-          {row.original.permissoes.map((perm: any) => (
-            <span
-              key={perm.id}
-              className="bg-gray-200 text-gray-800 px-2 py-1 rounded"
-            >
-              {perm.descricao}
-            </span>
-          ))}
-        </div>
-      ),
-    },
-    {
       id: "actions",
       header: "Ações",
       cell: ({ row }: { row: { original: any } }) => (
@@ -121,7 +107,8 @@ export default function RoleScreen() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <Header />
+        <Header onNovaMarcacao={() => setOpenDialog(true)} /> {/* Botão Nova Marcação */}
+        <CreateMarkingsDialog open={openDialog} onOpenChange={setOpenDialog} /> {/* Diálogo de Nova Marcação */}
         <main className="p-4">
           <div className="pb-4 flex justify-center w-full">
             <RoleForm

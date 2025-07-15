@@ -3,7 +3,7 @@ import { ServicosService } from './servicos.service';
 import { CreateServicoInput } from './dto/create-servico.input';
 import { UpdateServicoInput } from './dto/update-servico.input';
 import { ServicoModel } from './entities/servico.model';
-import { Servico } from '@prisma/client';
+import { Servico } from '@prisma/client'; // Corrigido
 
 @Resolver(() => ServicoModel)
 export class ServicosResolver {
@@ -53,7 +53,10 @@ export class ServicosResolver {
     return {
       id: servico.id,
       descricao: servico.descricao,
-      valor: servico.valor.toNumber(),
+      valor:
+        typeof servico.valor === 'number'
+          ? servico.valor
+          : servico.valor.toNumber(),
       duracao: servico.duracao,
     };
   }

@@ -1,21 +1,15 @@
 import * as React from "react";
-import { Printer, Download, Plus } from "lucide-react";
 import { NavUser } from "@/components/nav-user-dropdown";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import NewAppointmentScreen from "@/pages/HomeScreen/create-new-appointment";
 import { ColaboradoresFilter } from "../MarkingsScreen/Components/CollaboratorsFilter";
 import { StatusFilter } from "../MarkingsScreen/Components/StatusFilter";
-import { DatePicker } from "@/components/date-picker";
 import { Button } from "@/components/ui/button";
 import { FaFileDownload } from "react-icons/fa";
 
@@ -58,10 +52,17 @@ export function AppSidebar({
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   };
+  const colaboradoresMedicos = colaboradoresData?.colaboradores?.filter(
+    (c: any) =>
+      typeof c.cargo?.descricao === "string" &&
+      c.cargo.descricao.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() === "medico"
+  ) ?? [];
 
   function handleExport() {
     alert("Exportar não implementado");
   }
+
+  console.log("Médicos filtrados:", colaboradoresMedicos);
 
   return (
     <Sidebar {...props}>
@@ -80,7 +81,7 @@ export function AppSidebar({
         />
         <SidebarSeparator className="mx-0" />
         <ColaboradoresFilter
-          colaboradoresData={colaboradoresData}
+          colaboradoresData={{ colaboradores: colaboradoresMedicos }}
           loadingColaboradores={loadingColaboradores}
           selectedColaboradores={safeSelectedColaboradores}
           setSelectedColaboradores={setSelectedColaboradores}

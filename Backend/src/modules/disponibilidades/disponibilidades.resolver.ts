@@ -4,6 +4,7 @@ import { Disponibilidade } from './entities/disponibilidade.entity';
 import { CreateDisponibilidadeInput } from './dto/create-disponibilidade.input';
 import { UpdateDisponibilidadeInput } from './dto/update-disponibilidade.input';
 import { DisponibilidadeHorariosDisponiveisOutput } from './dto/disponibilidade-horarios-disponiveis.output';
+import { NotFoundException } from '@nestjs/common';
 
 @Resolver(() => Disponibilidade)
 export class DisponibilidadesResolver {
@@ -33,8 +34,12 @@ export class DisponibilidadesResolver {
   }
 
   @Query(() => Disponibilidade, { name: 'disponibilidade' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.disponibilidadesService.findOne(id);
+  async findOne(@Args('id', { type: () => Int }) id: number) {
+    const disponibilidade = await this.disponibilidadesService.findOne(id);
+    if (!disponibilidade) {
+      throw new NotFoundException('Disponibilidade não encontrada');
+    }
+    return disponibilidade;
   }
 
   @Mutation(() => Disponibilidade)

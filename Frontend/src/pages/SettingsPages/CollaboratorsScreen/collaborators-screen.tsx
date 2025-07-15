@@ -8,6 +8,8 @@ import { ColaboradorForm } from "./create-collaborators-dialog";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_COLABORADORES } from "@/graphql/queries";
 import { CREATE_COLABORADOR, DELETE_COLABORADOR, UPDATE_COLABORADOR } from "@/graphql/mutations";
+import { ConfirmDialog } from "@/components/alert-dialog-remove";
+import CreateMarkingsDialog from "@/pages/MarkingsScreen/create-markings-dialog";
 
 export default function ColaboradoresScreen() {
   const { data, loading } = useQuery(GET_COLABORADORES);
@@ -21,6 +23,8 @@ export default function ColaboradoresScreen() {
     refetchQueries: [{ query: GET_COLABORADORES }],
   });
   const [editing, setEditing] = useState(null);
+  const [colaboradorParaRemover, setColaboradorParaRemover] = useState<string | null>(null);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const colaboradores = data?.colaboradores ?? [];
 
@@ -50,7 +54,7 @@ export default function ColaboradoresScreen() {
 
     if (colab.imagem_file) {
       const uploadedUrl = await uploadImage(colab.imagem_file);
-      if (!uploadedUrl) return; // Abort if upload failed
+      if (!uploadedUrl) return { success: false, message: "Erro ao fazer upload da imagem." };
       imagem_url = uploadedUrl;
     }
 
@@ -61,49 +65,53 @@ export default function ColaboradoresScreen() {
       cargoId: Number(colab.cargoId),
       imagem_url,
       senha: colab.senha || undefined,
-      cor: colab.cor, // <-- este campo é obrigatório!
+      cor: colab.cor,
     };
 
     try {
       if (colab.id) {
-        await updateColaborador({
-          variables: {
-            id: colab.id,
-            descricao: colab.descricao,
-            email: colab.email,
-            telemovel: colab.telemovel,
-            cargoId: Number(colab.cargoId),
-            imagem_url,
-            cor: colab.cor, // <-- este campo é obrigatório!
-          },
-        });
+        await updateColaborador({ variables: { ...payload, id: colab.id } });
+        return { success: true };
       } else {
-        await createColaborador({
-          variables: payload,
-        });
+        await createColaborador({ variables: payload });
+        return { success: true };
       }
-      setEditing(null);
-    } catch (error) {
-      alert('Erro ao salvar colaborador');
-      console.error(error);
+    } catch (error: any) {
+      let msg = "Erro ao salvar colaborador";
+      if (error?.graphQLErrors?.[0]?.message) {
+        const backendMsg = error.graphQLErrors[0].message;
+        // Personalize para erro de e-mail duplicado
+        if (
+          backendMsg.includes("Unique constraint failed") ||
+          backendMsg.includes("IDX_2c7cab1392c28313e5880d941b")
+        ) {
+          msg = "Já existe um colaborador cadastrado com este e-mail.";
+        } else {
+          msg = backendMsg;
+        }
+      } else if (error?.message) {
+        msg = error.message;
+      }
+      return { success: false, message: msg };
     }
   };
 
-  const handleEdit = (colab) => setEditing(colab);
+  const handleEdit = (colab) => {
+    setEditing({
+      ...colab,
+      cargoId: colab.cargo?.id ? String(colab.cargo.id) : "",
+      imagem_url: colab.imagem_url || "",
+    });
+  };
 
   const handleDelete = async (id) => {
-    console.log('ID enviado para remoção:', id);
-    if (confirm("Tem certeza que deseja excluir este colaborador?")) {
-      try {
-        await deleteColaborador({ variables: { id } });
-        setEditing(null); // Limpa edição se estava editando esse colaborador
-      } catch (error) {
-        alert('Erro ao excluir colaborador');
-        console.error('Erro detalhado:', error);
-        if (error.networkError && error.networkError.result && error.networkError.result.errors) {
-          console.error('GraphQL errors:', error.networkError.result.errors);
-        }
-      }
+    try {
+      await deleteColaborador({ variables: { id } });
+      setEditing(null); // Limpa edição se estava editando esse colaborador
+    } catch (error) {
+      // Se quiser mostrar erro, use setError ou um toast, não alert!
+      console.error('Erro ao excluir colaborador:', error);
+      // Exemplo: setError("Erro ao excluir colaborador");
     }
   };
 
@@ -150,7 +158,7 @@ export default function ColaboradoresScreen() {
           <button onClick={() => handleEdit(row.original)} className="text-500 hover:underline">
             <Edit />
           </button>
-          <button onClick={() => handleDelete(row.original.id)} className="text-red-500 hover:underline">
+          <button onClick={() => setColaboradorParaRemover(row.original.id)} className="text-red-500 hover:underline">
             <Trash2 />
           </button>
         </div>
@@ -164,10 +172,12 @@ export default function ColaboradoresScreen() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <Header />
+        <Header onNovaMarcacao={() => setOpenDialog(true)} />
+        <CreateMarkingsDialog open={openDialog} onOpenChange={setOpenDialog} />
         <main className="p-4">
           <div className="pb-4 flex justify-center w-full">
             <ColaboradorForm
+             key={editing ? editing.id : "new"}// <-- força recriação sempre que cadastrar ou editar/cancelar
               initialData={editing}
               onSubmit={handleAddOrEditColaborador}
               onCancel={handleCancelEdit}
@@ -177,6 +187,20 @@ export default function ColaboradoresScreen() {
           <DataTable columns={columns} data={colaboradores} />
         </main>
       </SidebarInset>
+      <ConfirmDialog
+        open={!!colaboradorParaRemover}
+        title="Excluir colaborador?"
+        description="Tem certeza que deseja excluir este colaborador? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        onConfirm={async () => {
+          if (colaboradorParaRemover) {
+            await handleDelete(colaboradorParaRemover);
+            setColaboradorParaRemover(null);
+          }
+        }}
+        onCancel={() => setColaboradorParaRemover(null)}
+      />
     </SidebarProvider>
   );
 }

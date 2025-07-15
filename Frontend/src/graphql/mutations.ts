@@ -342,3 +342,21 @@ export const CREATE_DISPONIBILIDADE = gql`
     }
   }
 `;
+export const UPDATE_DISPONIBILIDADE = gql`
+  mutation UpdateDisponibilidade($updateDisponibilidadeInput: UpdateDisponibilidadeInput!) {
+    updateDisponibilidade(updateDisponibilidadeInput: $updateDisponibilidadeInput) {
+      id
+      id_colaborador
+      dia_da_semana
+      hora_inicio
+      hora_fim
+    }
+  }
+`;
+export const DELETE_DISPONIBILIDADE = gql`
+  mutation DeleteDisponibilidade($id: Int!) {
+    removeDisponibilidade(id: $id) {
+      id
+    }
+  }
+`;

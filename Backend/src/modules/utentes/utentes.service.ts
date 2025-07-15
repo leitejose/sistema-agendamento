@@ -1,13 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateUtenteInput } from './dto/create-utente.input';
-import { Utente } from '@prisma/client';
+import { Utente } from '@prisma/client'; // Corrigido
 
 @Injectable()
 export class UtentesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createUtenteInput: CreateUtenteInput): Promise<Utente> {
+    // <-- Corrija aqui!
     const {
       nome,
       email,

@@ -9,6 +9,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import { GET_PERMISSOES } from "@/graphql/queries";
 import { CREATE_PERMISSAO, REMOVE_PERMISSAO, UPDATE_PERMISSAO } from "@/graphql/mutations";
 import { useState } from "react";
+import CreateMarkingsDialog from "@/pages/MarkingsScreen/create-markings-dialog";
 
 export default function PermissionScreen() {
   const { data, loading } = useQuery(GET_PERMISSOES);
@@ -23,6 +24,7 @@ export default function PermissionScreen() {
   });
   const [editing, setEditing] = useState<any | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [openDialog, setOpenDialog] = useState(false); // Estado para controlar o diálogo
 
   const handleCancelEdit = () => setEditing(null);
 
@@ -34,7 +36,7 @@ export default function PermissionScreen() {
       await updatePermissao({
         variables: {
           id: editing.id,
-          updatePermissoesInput: { descricao }
+          updatePermissoesInput: { descricao },
         },
       });
       setEditing(null);
@@ -63,7 +65,9 @@ export default function PermissionScreen() {
             String(e.message).includes("Foreign key constraint")
           )
         ) {
-          alert("Não é possível excluir: permissão está em uso por um colaborador ou outro registro.");
+          alert(
+            "Não é possível excluir: permissão está em uso por um colaborador ou outro registro."
+          );
         } else {
           alert("Erro ao excluir permissão.");
         }
@@ -110,7 +114,8 @@ export default function PermissionScreen() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <Header />
+        <Header onNovaMarcacao={() => setOpenDialog(true)} /> {/* Botão Nova Marcação */}
+        <CreateMarkingsDialog open={openDialog} onOpenChange={setOpenDialog} /> {/* Diálogo de Nova Marcação */}
         <main className="p-4">
           {errorMsg && (
             <div className="mb-4 text-red-600 text-center font-semibold">

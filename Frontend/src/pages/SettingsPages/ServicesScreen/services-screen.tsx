@@ -15,6 +15,7 @@ import { DataTable } from "@/components/data-table";
 import { useState, useEffect } from "react";
 import { Edit, Trash2 } from "lucide-react";
 import { CreateServiceForm } from "./create-services-form";
+import CreateMarkingsDialog from "../../MarkingsScreen/create-markings-dialog";
 
 export default function Page() {
   const { loading, error, data } = useQuery<GetServicosData>(GET_SERVICOS);
@@ -22,6 +23,8 @@ export default function Page() {
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [editing, setEditing] = useState(null);
   const [searchText, setSearchText] = useState("");
+
+  const [openDialog, setOpenDialog] = useState(false); // Estado para controlar o diálogo
 
   const [deleteServico] = useMutation(DELETE_SERVICO, {
     onCompleted: (data) => {
@@ -144,7 +147,8 @@ export default function Page() {
     <SidebarProvider>
       <AppSidebar setData={setData} setSearchText={setSearchText} dataList={dataList} />
       <SidebarInset>
-        <Header />
+        <Header onNovaMarcacao={() => setOpenDialog(true)} /> {/* Botão Nova Marcação */}
+        <CreateMarkingsDialog open={openDialog} onOpenChange={setOpenDialog} /> {/* Diálogo de Nova Marcação */}
         <main className="p-4">
           <div className="pb-4 flex justify-center w-full">
             <CreateServiceForm

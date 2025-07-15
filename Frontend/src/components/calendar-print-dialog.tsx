@@ -7,7 +7,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+
 import { useState } from "react";
 
 export function CalendarPrintDialog({ events }: { events: any[] }) {
