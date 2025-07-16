@@ -22,6 +22,8 @@ import {
   GET_UTENTES,
   GET_COLABORADORES,
   GET_SERVICOS,
+  GET_AGENDAMENTOS,
+  GET_FERIAS,
 } from "@/graphql/queries";
 import { UPDATE_AGENDAMENTO } from "@/graphql/mutations";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,6 +39,8 @@ type FormData = {
   statusId: string;
   observacoes: string;
 };
+
+// ... imports (mesmos que antes)
 
 const formatDateForInput = (date: string): string => {
   const d = new Date(date);
@@ -77,10 +81,11 @@ export default function EditMarkingsDialog({
   const { data: utentesData, loading: utentesLoading } = useQuery(GET_UTENTES);
   const { data: colaboradoresData, loading: colaboradoresLoading } = useQuery(GET_COLABORADORES);
   const { data: servicosData, loading: servicosLoading } = useQuery(GET_SERVICOS);
+  const { data: agendamentosData } = useQuery(GET_AGENDAMENTOS);
+  const { data: feriasData } = useQuery(GET_FERIAS);
 
   const [updateAgendamento, { loading: updateLoading, error: updateError }] = useMutation(UPDATE_AGENDAMENTO);
 
-  // Atualiza formData e selectedTime dinamicamente com base no agendamento
   useEffect(() => {
     if (agendamento) {
       setFormData({
@@ -101,7 +106,6 @@ export default function EditMarkingsDialog({
     }
   }, [agendamento]);
 
-  // Atualiza utenteInfo dinamicamente com base no id_utente
   useEffect(() => {
     if (formData.id_utente && utentesData?.utentes) {
       const selectedUtente = utentesData.utentes.find((u: any) => u.id === formData.id_utente);
@@ -111,7 +115,7 @@ export default function EditMarkingsDialog({
           telemovel: selectedUtente.telemovel,
         });
       } else {
-        setUtenteInfo(null); // Limpa caso não encontre o utente
+        setUtenteInfo(null);
       }
     }
   }, [formData.id_utente, utentesData]);
@@ -143,24 +147,29 @@ export default function EditMarkingsDialog({
 
   const handleSave = async () => {
     try {
-      // Validação: Verifique se os horários foram selecionados
       if (!formData.hora_inicio || !formData.hora_fim) {
         alert("Por favor, selecione um horário.");
         return;
       }
+
+      const dataFormatada = formData.data_agendamento; // ex: "2025-07-28"
+      const horaInicioFull = `${dataFormatada}T${formData.hora_inicio}`; // ex: "2025-07-28T10:00:00"
+      const horaFimFull = `${dataFormatada}T${formData.hora_fim}`;       // ex: "2025-07-28T11:00:00"
 
       const updatedData = {
         id: formData.id,
         utenteId: Number(formData.id_utente),
         colaboradorId: Number(formData.id_colaborador),
         servicoId: Number(formData.id_servicos),
-        data_agendamento: new Date(formData.data_agendamento).toISOString(), // Converte para ISO string
-        hora_inicio: formData.hora_inicio, // Mantém como string no formato HH:mm:ss
-        hora_fim: formData.hora_fim, // Mantém como string no formato HH:mm:ss
-        statusId: Number(formData.statusId), 
+        data_agendamento: dataFormatada,
+        hora_inicio: horaInicioFull,
+        hora_fim: horaFimFull,
+        statusId: Number(formData.statusId),
         statusAgendamentoId: Number(formData.statusId),
         observacoes: formData.observacoes,
       };
+
+      console.log("Dados enviados para atualização:", updatedData);
 
       const result = await updateAgendamento({
         variables: { updateAgendamentoInput: updatedData },
@@ -180,7 +189,83 @@ export default function EditMarkingsDialog({
     }
   };
 
-  const availableTimes = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!colaboradoresData || !formData.id_colaborador || !formData.data_agendamento) {
+      setAvailableTimes([]);
+      return;
+    }
+
+    const feriasColaborador = (feriasData?.ferias || []).filter(
+      (f: any) => f.colaborador_id.toString() === formData.id_colaborador.toString()
+    );
+    const dataSelecionada = new Date(formData.data_agendamento);
+    const emFerias = feriasColaborador.some((f: any) => {
+      const inicio = new Date(f.data_inicio);
+      const fim = new Date(f.data_fim);
+      return dataSelecionada >= inicio && dataSelecionada <= fim;
+    });
+
+    if (emFerias) {
+      setAvailableTimes([]);
+      return;
+    }
+
+    const colaborador = colaboradoresData.colaboradores.find(
+      (c: any) => c.id === formData.id_colaborador
+    );
+
+    if (colaborador && colaborador.disponibilidades) {
+      let diaSemanaJS = new Date(formData.data_agendamento).getDay();
+      let diaSemana = diaSemanaJS === 0 ? 6 : diaSemanaJS - 1;
+
+      const dispDia = colaborador.disponibilidades.filter(
+        (d: any) => Number(d.dia_da_semana) === Number(diaSemana)
+      );
+
+      const horarios: string[] = [];
+      dispDia.forEach((disp: any) => {
+        const inicio = disp.hora_inicio.substring(11, 16);
+        const fim = disp.hora_fim.substring(11, 16);
+        let [h, m] = inicio.split(":").map(Number);
+        const [hFim, mFim] = fim.split(":").map(Number);
+
+        while (h < hFim || (h === hFim && m < mFim)) {
+          horarios.push(`${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`);
+          m += 30;
+          if (m >= 60) {
+            h += 1;
+            m = m % 60;
+          }
+        }
+      });
+
+      const agendamentosDia = (agendamentosData?.getAgendamentos || []).filter(
+        (a: any) =>
+          a.id_colaborador.toString() === formData.id_colaborador.toString() &&
+          a.data_agendamento.slice(0, 10) === formData.data_agendamento
+      );
+
+      const horariosOcupados = new Set(
+        agendamentosDia.map((a: any) => {
+          const date = new Date(a.hora_inicio);
+          const hh = date.getUTCHours().toString().padStart(2, "0");
+          const mm = date.getUTCMinutes().toString().padStart(2, "0");
+          return `${hh}:${mm}`;
+        })
+      );
+
+      const horariosDisponiveis = horarios.filter((h) => !horariosOcupados.has(h));
+      setAvailableTimes(horariosDisponiveis);
+    } else {
+      setAvailableTimes([]);
+    }
+  }, [colaboradoresData, feriasData, formData.id_colaborador, formData.data_agendamento, agendamentosData]);
+
+  const emFerias = availableTimes.length === 0 && formData.id_colaborador && feriasData?.ferias.some(
+    (f: any) => f.colaborador_id.toString() === formData.id_colaborador.toString()
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -193,7 +278,6 @@ export default function EditMarkingsDialog({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Coluna Esquerda */}
           <div className="space-y-4">
-            {/* Colaborador */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="id_colaborador" className="text-right">Colaborador</Label>
               <Select
@@ -215,7 +299,6 @@ export default function EditMarkingsDialog({
               </Select>
             </div>
 
-            {/* Serviço */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="id_servicos" className="text-right">Serviço</Label>
               <Select
@@ -240,7 +323,6 @@ export default function EditMarkingsDialog({
               </Select>
             </div>
 
-            {/* Data */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="data_agendamento" className="text-right">Data</Label>
               <Input
@@ -252,71 +334,71 @@ export default function EditMarkingsDialog({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="data_agendamento" className="text-right">Hora</Label>
-              <Input className="col-span-3"
-              type="" value={(formData.hora_inicio.slice(11,16) ) || ""} disabled />
+              <Label className="text-right">Hora</Label>
+              <Input className="col-span-3" type="text" value={formData.hora_inicio.slice(11,16)} disabled />
             </div>
 
-            {/* Horários Disponíveis */}
             <div>
               <Label>Horários Disponíveis</Label>
               <div className="flex flex-wrap gap-2">
-                {availableTimes.map((time) => (
-                  <Card
-                    key={time}
-                    onClick={() => handleTimeSelect(time)}
-                    className={`cursor-pointer hover:shadow-md ${
-                      selectedTime === time ? "border-2 border-green-500 bg-green-400" : "bg-green-300"
-                    }`}
-                  >
-                    <CardContent className="p-2">
-                      <Button variant="none" size="sm">{time}</Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                {availableTimes.length === 0 && emFerias ? (
+                  <span className="text-red-500">
+                    O médico está indisponível para esta data (férias).
+                  </span>
+                ) : availableTimes.length === 0 ? (
+                  <span className="text-muted-foreground">Nenhum horário disponível</span>
+                ) : (
+                  availableTimes.map((time) => (
+                    <Card
+                      key={time}
+                      onClick={() => handleTimeSelect(time)}
+                      className={`cursor-pointer hover:shadow-md ${
+                        selectedTime === time ? "border-2 border-green-500 bg-green-400" : "bg-green-300"
+                      }`}
+                    >
+                      <CardContent className="p-2">
+                        <Button variant="none" size="sm">{time}</Button>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
             </div>
           </div>
 
           {/* Coluna Direita */}
           <div className="space-y-4">
-            {/* Utente */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="id_utente" className="text-right">Utente</Label>
-                <Select
-                  value={String(formData.id_utente)}
-                  onValueChange={(value) => setFormData((prev) => ({ ...prev, id_utente: value }))}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Selecione um utente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {utentesLoading ? (
-                      <SelectItem value="" disabled>Carregando...</SelectItem>
-                    ) : (
-                      utentesData?.utentes.map((utente: any) => (
-                        <SelectItem key={utente.id} value={String(utente.id)}>{utente.nome}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="id_utente" className="text-right">Utente</Label>
+              <Select
+                value={String(formData.id_utente)}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, id_utente: value }))}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione um utente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {utentesLoading ? (
+                    <SelectItem value="" disabled>Carregando...</SelectItem>
+                  ) : (
+                    utentesData?.utentes.map((utente: any) => (
+                      <SelectItem key={utente.id} value={String(utente.id)}>{utente.nome}</SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Email */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">Email</Label>
               <Input className="col-span-3" value={utenteInfo?.email || ""} disabled />
             </div>
 
-            {/* Telemóvel */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">Telemóvel</Label>
               <Input className="col-span-3" value={utenteInfo?.telemovel || ""} disabled />
             </div>
 
-            {/* Observações */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="observacoes" className="text-right">Observações</Label>
               <Input

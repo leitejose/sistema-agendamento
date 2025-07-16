@@ -14,28 +14,40 @@ import { CREATE_CARGO, UPDATE_CARGO, REMOVE_CARGO } from "@/graphql/mutations";
 import CreateMarkingsDialog from "../../MarkingsScreen/create-markings-dialog";
 
 export default function RoleScreen() {
-  const { data: cargosData, loading: loadingCargos } = useQuery(GET_CARGOS);
-  const { data: permissoesData, loading: loadingPerms } = useQuery(GET_PERMISSOES);
+  const { data: cargosData, loading: loadingCargos, error: errorCargos } = useQuery(GET_CARGOS);
+  const { data: permissoesData, loading: loadingPerms, error: errorPerms } = useQuery(GET_PERMISSOES);
 
   const [createCargo] = useMutation(CREATE_CARGO, { refetchQueries: [{ query: GET_CARGOS }] });
   const [updateCargo] = useMutation(UPDATE_CARGO, { refetchQueries: [{ query: GET_CARGOS }] });
   const [removeCargo] = useMutation(REMOVE_CARGO, { refetchQueries: [{ query: GET_CARGOS }] });
 
-  const cargos = cargosData?.cargos ?? [];
-  const permissoes = permissoesData?.permissoes ?? [];
-
   const [cargoEditando, setCargoEditando] = useState(null);
   const [openDialog, setOpenDialog] = useState(false); // Estado para controlar o diálogo
 
+  if (loadingCargos || loadingPerms) {
+    return <div>Carregando...</div>;
+  }
+
+  if (errorCargos || errorPerms) {
+    return <div>Erro ao carregar dados.</div>;
+  }
+
+  const cargos = cargosData?.cargos ?? [];
+  const permissoes = permissoesData?.permissoes ?? [];
+
   const handleAddRole = async ({ descricao, permissoesIds }) => {
-    await createCargo({
-      variables: {
-        createCargoInput: {
-          descricao,
-          permissoesIds,
+    try {
+      await createCargo({
+        variables: {
+          createCargoInput: {
+            descricao,
+            permissoesIds,
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      alert("Erro ao adicionar função.");
+    }
   };
 
   const handleEdit = (cargo) => {
@@ -46,45 +58,49 @@ export default function RoleScreen() {
     setCargoEditando(null);
   };
 
-  const handleDelete = async (roleId: number) => {
+  const handleDelete = async (roleId) => {
     const confirmed = confirm("Tem certeza que deseja excluir esta função?");
     if (confirmed) {
       try {
         await removeCargo({ variables: { id: roleId } });
-      } catch (error: any) {
+      } catch (error) {
         alert("Erro ao excluir função.");
       }
     }
   };
 
   const handleUpdateRole = async ({ id, descricao, permissoesIds }) => {
-    await updateCargo({
-      variables: {
-        id, // id separado
-        updateCargoInput: {
-          descricao,
-          permissoesIds,
+    try {
+      await updateCargo({
+        variables: {
+          id,
+          updateCargoInput: {
+            descricao,
+            permissoesIds,
+          },
         },
-      },
-    });
-    setCargoEditando(null); // Limpa o estado de edição após atualizar
+      });
+      setCargoEditando(null);
+    } catch (error) {
+      alert("Erro ao atualizar função.");
+    }
   };
 
   const columns = [
     {
       accessorKey: "id",
       header: "Código",
-      cell: (info: { getValue: () => any }) => info.getValue(),
+      cell: (info) => info.getValue(),
     },
     {
       accessorKey: "descricao",
       header: "Descrição",
-      cell: (info: { getValue: () => any }) => info.getValue(),
+      cell: (info) => info.getValue(),
     },
     {
       id: "actions",
       header: "Ações",
-      cell: ({ row }: { row: { original: any } }) => (
+      cell: ({ row }) => (
         <div className="flex gap-2">
           <button
             onClick={() => handleEdit(row.original)}

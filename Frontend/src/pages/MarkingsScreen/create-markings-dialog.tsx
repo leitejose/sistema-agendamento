@@ -204,29 +204,6 @@ useEffect(() => {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  // Combina a data e a hora e retorna uma string no formato ISO.
-  const combineDateAndTime = (date: string, time: string): string => {
-    if (!date || !time) {
-      throw new RangeError("Data ou hora inválida.");
-    }
-
-    // Remova quaisquer segundos existentes no formato de hora
-    const cleanTime = time.trim().split(":").slice(0, 2).join(":");
-    
-    if (!cleanTime.includes(":")) {
-      throw new RangeError("Formato de hora inválido");
-    }
-
-    const [hour, minute] = cleanTime.split(":").map(Number);
-    if (isNaN(hour) || isNaN(minute)) {
-      throw new RangeError("Hora inválida.");
-    }
-
-    // Em vez de criar um novo Date e chamar toISOString, retorne a string formatada diretamente
-    return `${date}T${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}:00.000Z`;
-  };
-
-
   // Atualiza os campos de hora com formatação correta e remove espaços extras
   const handleTimeSelect = async (time: string) => {
     // Use apenas hora:minuto, sem segundos
@@ -270,7 +247,7 @@ useEffect(() => {
         data_agendamento: formData.data_agendamento,
         hora_inicio: inicio,
         hora_fim: fim || null,
-        statusId: parseInt(formData.statusId),
+        statusAgendamentoId: parseInt(formData.statusId), // Correct field name
         observacoes: formData.observacoes || "",
       };
 
@@ -307,8 +284,8 @@ useEffect(() => {
     navigate("/utentes-screen");
   };
 
-  const availableTimesList = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
-
+  // Definir uniqueAvailableTimes para garantir valores únicos
+  const uniqueAvailableTimes = Array.from(new Set(availableTimes));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -378,14 +355,14 @@ useEffect(() => {
             <div>
               <Label>Horários Disponíveis</Label>
               <div className="flex flex-wrap gap-2">
-                {availableTimes.length === 0 && emFerias ? (
+                {uniqueAvailableTimes.length === 0 && emFerias ? (
                   <span className="text-red-500">
                     O médico está indisponível para esta data (férias).
                   </span>
-                ) : availableTimes.length === 0 ? (
+                ) : uniqueAvailableTimes.length === 0 ? (
                   <span className="text-muted-foreground">Nenhum horário disponível</span>
                 ) : (
-                  availableTimes.map((time) => (
+                  uniqueAvailableTimes.map((time) => (
                     <Card
                       key={time}
                       onClick={() => handleTimeSelect(time)}

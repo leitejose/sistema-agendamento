@@ -1,7 +1,8 @@
 import React from "react";
 import { useQuery } from "@apollo/client";
 import { GET_AGENDAMENTOS, GET_SERVICOS } from "@/graphql/queries";
-import { BadgeEuro, ShoppingCart, UserPlus, Banknote } from "lucide-react";
+import { BadgeEuro, ShoppingCart, UserPlus, Banknote, SquareX } from "lucide-react";
+import { parse } from "date-fns";
 
 type StatCardProps = {
   title: string;
@@ -28,80 +29,97 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => {
   );
 };
 
-export function CardsData() {
+// Adicionando lógica para filtrar agendamentos com base no intervalo de datas
+export function CardsData({ startDate, endDate }: { startDate: string; endDate: string }) {
   const { data: agendamentosData, loading } = useQuery(GET_AGENDAMENTOS);
   const { data: servicosData } = useQuery(GET_SERVICOS);
 
+  console.log("Start Date:", startDate);
+  console.log("End Date:", endDate);
+  console.log("Agendamentos Data:", agendamentosData?.getAgendamentos);
+  console.log("StartDate recebido:", startDate);
+  console.log("EndDate recebido:", endDate);
+  console.log("Agendamentos recebidos:", agendamentosData?.getAgendamentos);
+
+  const parseDate = (dateString: string) => {
+    // Attempt to parse ISO format first
+    let parsedDate = new Date(dateString);
+    if (!isNaN(parsedDate.getTime())) return parsedDate;
+
+    // Attempt to parse custom format (e.g., DD/MM/YYYY)
+    if (!dateString || typeof dateString !== "string") {
+      console.warn("Invalid or undefined date string:", dateString);
+      return null;
+    }
+
+    parsedDate = parse(dateString, "dd/MM/yyyy", new Date());
+    return isNaN(parsedDate.getTime()) ? null : parsedDate;
+  };
+
+  const filteredAgendamentos = React.useMemo(() => {
+    if (!agendamentosData?.getAgendamentos) return [];
+    return agendamentosData.getAgendamentos.filter((agendamento: any) => {
+      const agendamentoDate = parseDate(agendamento.data_agendamento); // Corrigido para usar o campo correto
+      if (!agendamentoDate) {
+        console.warn("Invalid date encountered:", agendamento.data_agendamento);
+        return false;
+      }
+      const start = new Date(startDate + "T00:00:00");
+      const end = new Date(endDate + "T23:59:59");
+      return agendamentoDate >= start && agendamentoDate <= end;
+    });
+  }, [agendamentosData, startDate, endDate]);
+
+  console.log("Filtered Agendamentos:", filteredAgendamentos);
+
   // Total em euros
   const totalEuros = React.useMemo(() => {
-    if (!agendamentosData?.getAgendamentos || !servicosData?.servicos) return 0;
-    return agendamentosData.getAgendamentos.reduce(
-      (sum: number, agendamento: any) => {
-        const servico = servicosData.servicos.find(
-          (s: any) => s.id === agendamento.id_servicos
-        );
-        return sum + (Number(servico?.valor) || 0);
-      },
-      0
-    );
-  }, [agendamentosData, servicosData]);
+    if (!filteredAgendamentos || !servicosData?.servicos) return 0;
+    return filteredAgendamentos.reduce((sum: number, agendamento: any) => {
+      const servico = servicosData.servicos.find((s: any) => s.id === agendamento.id_servicos);
+      return sum + (Number(servico?.valor) || 0);
+    }, 0);
+  }, [filteredAgendamentos, servicosData]);
 
-  // Quantidade total de marcações
+  const cancelamentos = React.useMemo(() => {
+    if (!filteredAgendamentos) return 0;
+    return filteredAgendamentos.filter((a: any) => a.statusId === 3).length;
+  }, [filteredAgendamentos]);
+
   const quantidade = React.useMemo(() => {
-    if (!agendamentosData?.getAgendamentos) return 0;
-    return agendamentosData.getAgendamentos.length;
-  }, [agendamentosData]);
+    return filteredAgendamentos.length;
+  }, [filteredAgendamentos]);
 
-  // Valor médio por marcação
-  const valorMedio = React.useMemo(() => {
-    if (quantidade === 0) return 0;
-    return totalEuros / quantidade;
-  }, [totalEuros, quantidade]);
-
-  // Quantidade de serviços diferentes
-  const totalServicos = React.useMemo(() => {
-    if (!servicosData?.servicos) return 0;
-    return servicosData.servicos.length;
-  }, [servicosData]);
-
-  // Quantidade de clientes únicos (utentes)
-  // Supondo que cada agendamento tem um id_utente
   const totalClientes = React.useMemo(() => {
-    if (!agendamentosData?.getAgendamentos) return 0;
-    const clientesSet = new Set(agendamentosData.getAgendamentos.map((a: any) => a.id_utente));
+    if (!filteredAgendamentos) return 0;
+    const clientesSet = new Set(filteredAgendamentos.map((a: any) => a.id_utente));
     return clientesSet.size;
-  }, [agendamentosData]);
+  }, [filteredAgendamentos]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 justify-center">
       <StatCard
-        title="Marcações em Euros"
-        value={loading ? "..." : `€ ${totalEuros.toLocaleString("pt-PT")}`}
-        icon={<BadgeEuro size={24} />}
-        color="bg-black"
-      />
-      <StatCard
-        title="Quantidade de Marcações"
+        title="Marcações"
         value={loading ? "..." : quantidade}
         icon={<ShoppingCart size={24} />}
         color="bg-black"
       />
       <StatCard
-        title="Valor médio por marcação"
-        value={loading ? "..." : `€ ${valorMedio.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-        icon={<Banknote size={24} />}
+        title="Taxa de Cancelamento"
+        value={loading ? "..." : `${((cancelamentos / quantidade) * 100).toFixed(2)}%`}
+        icon={<SquareX size={24} />}
         color="bg-black"
       />
       <StatCard
-        title="Clientes únicos"
+        title="Clientes"
         value={loading ? "..." : totalClientes}
         icon={<UserPlus size={24} />}
         color="bg-black"
       />
       <StatCard
-        title="Serviços diferentes"
-        value={loading ? "..." : totalServicos}
-        icon={<ShoppingCart size={24} />}
+        title="Total de Receita"
+        value={loading ? "..." : `€ ${totalEuros.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+        icon={<BadgeEuro size={24} />}
         color="bg-black"
       />
     </div>

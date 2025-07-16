@@ -16,12 +16,18 @@ import {
 
 export function DateFilter({
   className,
-}: React.HTMLAttributes<HTMLDivElement>) {
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: new Date(2022, 0, 20),
-    to: addDays(new Date(2022, 0, 20), 20),
-  })
-
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
+  onFilter,
+}: React.HTMLAttributes<HTMLDivElement> & {
+  startDate: string;
+  endDate: string;
+  onStartDateChange: (date: string) => void;
+  onEndDateChange: (date: string) => void;
+  onFilter: () => void;
+}) {
   return (
     <div className={cn("grid gap-2 flex justify-end p-5", className)}>
       <Popover>
@@ -31,19 +37,15 @@ export function DateFilter({
             variant={"outline"}
             className={cn(
               "w-[300px] justify-start text-left font-normal",
-              !date && "text-muted-foreground"
+              !startDate && !endDate && "text-muted-foreground"
             )}
           >
             <CalendarIcon />
-            {date?.from ? (
-              date.to ? (
-                <>
-                  {format(date.from, "LLL dd, y")} -{" "}
-                  {format(date.to, "LLL dd, y")}
-                </>
-              ) : (
-                format(date.from, "LLL dd, y")
-              )
+            {startDate && endDate ? (
+              <>
+                {format(new Date(startDate), "LLL dd, y")} -{" "}
+                {format(new Date(endDate), "LLL dd, y")}
+              </>
             ) : (
               <span>Pick a date</span>
             )}
@@ -53,14 +55,19 @@ export function DateFilter({
           <Calendar
             initialFocus
             mode="range"
-            defaultMonth={date?.from}
-            selected={date}
-            onSelect={setDate}
+            defaultMonth={new Date(startDate)}
+            selected={{ from: new Date(startDate), to: new Date(endDate) }}
+            onSelect={(range) => {
+              if (range?.from)
+                onStartDateChange(range.from.toISOString().split("T")[0]);
+              if (range?.to)
+                onEndDateChange(range.to.toISOString().split("T")[0]);
+            }}
             numberOfMonths={2}
           />
         </PopoverContent>
       </Popover>
-      <Button>Filtrar</Button>
+      <Button onClick={onFilter}>Filtrar</Button>
     </div>
-  )
+  );
 }

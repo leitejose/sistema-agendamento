@@ -209,6 +209,7 @@ export default function Page() {
                       colaboradorId: agendamento.id_colaborador,
                       servicoId: agendamento.id_servicos,
                       statusId: novoStatusId,
+                      statusAgendamentoId: novoStatusId, // Adicionado para corrigir o erro
                     },
                   },
                 });

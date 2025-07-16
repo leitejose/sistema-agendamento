@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { agendamentoSchema } from "../../lib/validationSchemas";
 
 interface Appointment {
   id: number;
@@ -57,6 +58,15 @@ export default function NewAppointmentScreen({
       ...appointmentData,
       id: Date.now(), // Gera um ID único
     } as Appointment;
+
+    const validationResult = agendamentoSchema.safeParse(newAppointment);
+
+    if (!validationResult.success) {
+      console.error(validationResult.error.errors);
+      alert("Por favor, corrija os erros antes de salvar.");
+      return;
+    }
+
     onSave(newAppointment); // Salva o agendamento
     setAppointmentData({
       name: "",

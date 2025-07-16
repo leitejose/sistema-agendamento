@@ -19,15 +19,18 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { ChevronsUpDown, LogOut } from "lucide-react";
+import { useQuery } from '@apollo/client';
+import { GET_COLABORADOR_LOGADO } from '@/graphql/queries';
 
 export function NavUser() {
   const { logout } = useAuth();
   const { isMobile } = useSidebar();
 
+  const { data: colaboradorLogadoData } = useQuery(GET_COLABORADOR_LOGADO);
 
   const user = {
-    name: "John Doe",
-    email: " john.doe@example.com",
+    name: colaboradorLogadoData?.meColaborador?.descricao || 'Usuário',
+    email: colaboradorLogadoData?.meColaborador?.email || 'email@example.com',
     avatar: "https://example.com/avatar.jpg", // Replace with actual user avatar URL
   };
 

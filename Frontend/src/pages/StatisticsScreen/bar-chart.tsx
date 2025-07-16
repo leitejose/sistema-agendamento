@@ -28,17 +28,21 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function BarComponent() {
+export function BarComponent({ startDate, endDate }: { startDate: string; endDate: string }) {
   const { data, loading } = useQuery(GET_AGENDAMENTOS);
 
-  // Agrupa marcações por mês
+  // Agrupa marcações por mês dentro do intervalo de datas
   const chartData = React.useMemo(() => {
     if (!data?.getAgendamentos) return [];
     const counts: Record<string, number> = {};
     data.getAgendamentos.forEach((agendamento: any) => {
       const date = new Date(agendamento.data_agendamento);
-      const month = date.toLocaleString("default", { month: "long" });
-      counts[month] = (counts[month] || 0) + 1;
+      const start = new Date(startDate + "T00:00:00");
+      const end = new Date(endDate + "T23:59:59");
+      if (date >= start && date <= end) {
+        const month = date.toLocaleString("default", { month: "long" });
+        counts[month] = (counts[month] || 0) + 1;
+      }
     });
     // Ordena os meses corretamente
     const monthOrder = [
@@ -51,7 +55,7 @@ export function BarComponent() {
         month,
         Marcações: counts[month],
       }));
-  }, [data]);
+  }, [data, startDate, endDate]);
 
   if (loading) return <div>Carregando gráfico...</div>;
 

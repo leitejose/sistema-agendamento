@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service'; // Corrigir o caminho do import
 import { CreateCargoInput } from './dto/create-cargo.input';
 import { UpdateCargoInput } from './dto/update-cargo.input';
-import { Cargo, Permissao } from '@prisma/client'; // Corrigido
+import { cargo, permissao } from '@prisma/client'; // Corrigido
 
 @Injectable()
 export class CargoService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createCargoInput: CreateCargoInput): Promise<Cargo | null> {
+  async create(createCargoInput: CreateCargoInput): Promise<cargo | null> {
     // <-- Corrija aqui!
     const { descricao, permissoesIds } = createCargoInput;
 
@@ -35,12 +35,12 @@ export class CargoService {
     });
   }
 
-  async findAll(): Promise<Cargo[]> {
+  async findAll(): Promise<cargo[]> {
     // <-- Corrija aqui!
     return this.prisma.cargo.findMany();
   }
 
-  async findOne(id: number): Promise<Cargo | null> {
+  async findOne(id: number): Promise<cargo | null> {
     // <-- Corrija aqui!
     return this.prisma.cargo.findUnique({
       where: { id },
@@ -50,7 +50,7 @@ export class CargoService {
   async update(
     id: number,
     updateCargoInput: UpdateCargoInput,
-  ): Promise<Cargo | null> {
+  ): Promise<cargo | null> {
     // <-- Corrija aqui!
     const { descricao, permissoesIds } = updateCargoInput;
 
@@ -80,14 +80,14 @@ export class CargoService {
     });
   }
 
-  async remove(id: number): Promise<Cargo> {
+  async remove(id: number): Promise<cargo> {
     // <-- Corrija aqui!
     return this.prisma.cargo.delete({
       where: { id },
     });
   }
 
-  async getPermissoesByCargoId(cargoId: number): Promise<Permissao[]> {
+  async getPermissoesByCargoId(cargoId: number): Promise<permissao[]> {
     // <-- Corrija aqui!
     const permissoes = await this.prisma.cargoPermissoes.findMany({
       where: { cargoId },

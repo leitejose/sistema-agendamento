@@ -14,19 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Combobox } from "@/components/combobox";
 import { GET_UTENTES } from "@/graphql/queries";
 import { CREATE_UTENTE } from "@/graphql/mutations";
-import { useMutation } from "@apollo/client";
-import { z } from "zod";
-
-const CreateUtenteSchema = z.object({
-  nome: z.string().min(1, "Nome é obrigatório"),
-  email: z.string().email("Email inválido"),
-  telemovel: z.string().regex(/^\d+$/, "Número de telemóvel inválido"),
-  morada: z.string().optional(),
-  distrito: z.string().optional(),
-  concelho: z.string().optional(),
-  codigo_postal: z.string().regex(/^\d+$/, "Código postal inválido").optional(),
-  pais: z.string().min(1, "País é obrigatório"),
-});
+import { useMutation, useQuery } from "@apollo/client";
+import { utenteSchema } from '../../lib/validationSchemas';
 
 export default function CreateUtentesForm({
   formData,
@@ -43,6 +32,7 @@ export default function CreateUtentesForm({
 }) {
   const [createUtente] = useMutation(CREATE_UTENTE);
   const [error, setError] = useState("");
+  const { data: utentesData } = useQuery(GET_UTENTES);
 
   useEffect(() => {
     if (editingUtente) {
@@ -55,17 +45,34 @@ export default function CreateUtentesForm({
         concelho: editingUtente.concelho || "",
         codigo_postal: editingUtente.codigo_postal || "",
         pais: editingUtente.pais || "Portugal",
+        nif: editingUtente.nif || "",
+        sns: editingUtente.sns || "",
       });
     }
   }, [editingUtente, setFormData]);
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const parsedData = CreateUtenteSchema.safeParse(formData);
+    const parsedData = utenteSchema.safeParse(formData);
     if (!parsedData.success) {
       setError(parsedData.error.errors.map((err) => err.message).join("\n"));
       return;
     }
+    const isDuplicate = utentesData?.utentes?.some(
+      (utente) =>
+        utente.email === formData.email ||
+        utente.telemovel === formData.telemovel ||
+        utente.nif === formData.nif ||
+        utente.sns === formData.sns
+    );
+
+    if (isDuplicate) {
+      setError(
+        `<ul><li>Já existe um utente com o mesmo email, telemóvel, NIF ou SNS.</li></ul>`
+      );
+      return;
+    }
+
     try {
       await createUtente({
         variables: { data: formData },
@@ -81,6 +88,8 @@ export default function CreateUtentesForm({
         concelho: "",
         codigo_postal: "",
         pais: "Portugal",
+        nif: "",
+        sns: "",
       });
       setError("");
     } catch (error) {
@@ -107,7 +116,7 @@ export default function CreateUtentesForm({
                 <Label>Nome</Label>
                 <Input
                   value={formData?.nome ?? ""}
-                  onChange={e => setFormData({ ...formData, nome: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
                   placeholder="Nome do utente"
                   required
                 />
@@ -117,7 +126,7 @@ export default function CreateUtentesForm({
                 <Input
                   type="email"
                   value={formData?.email ?? ""}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="Email"
                   required
                 />
@@ -128,7 +137,7 @@ export default function CreateUtentesForm({
                 <Label>Telemóvel</Label>
                 <Input
                   value={formData?.telemovel ?? ""}
-                  onChange={e => setFormData({ ...formData, telemovel: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, telemovel: e.target.value })}
                   placeholder="Telemóvel"
                 />
               </div>
@@ -136,8 +145,26 @@ export default function CreateUtentesForm({
                 <Label>Morada</Label>
                 <Input
                   value={formData?.morada ?? ""}
-                  onChange={e => setFormData({ ...formData, morada: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, morada: e.target.value })}
                   placeholder="Morada"
+                />
+              </div>
+            </div>
+            <div className="flex flex-row space-x-4">
+              <div className="flex flex-col space-y-1.5 w-1/2">
+                <Label>NIF</Label>
+                <Input
+                  value={formData?.nif ?? ""}
+                  onChange={(e) => setFormData({ ...formData, nif: e.target.value })}
+                  placeholder="NIF"
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5 w-1/2">
+                <Label>SNS</Label>
+                <Input
+                  value={formData?.sns ?? ""}
+                  onChange={(e) => setFormData({ ...formData, sns: e.target.value })}
+                  placeholder="SNS"
                 />
               </div>
             </div>

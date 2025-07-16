@@ -1,7 +1,7 @@
 // utentes.resolver.ts
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { Utente } from '@prisma/client'; // Corrigido
+import { utente } from '@prisma/client';
 import { UtenteModel } from './dto/utente.model';
 import { CreateUtenteInput } from './dto/create-utente.input';
 import { UpdateUtenteInput } from './dto/update-utente.input';
@@ -15,36 +15,51 @@ export class UtentesResolver {
   ) {}
 
   @Query(() => [UtenteModel])
-  async utentes(): Promise<Utente[]> {
-    // <-- Corrija aqui!
-    return this.prisma.utente.findMany();
+  async utentes(): Promise<utente[]> {
+    return this.prisma.utente.findMany({
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        telemovel: true,
+        morada: true,
+        concelho: true,
+        distrito: true,
+        pais: true,
+        codigo_postal: true,
+        nif: true,
+        sns: true,
+      },
+    });
   }
 
   @Mutation(() => UtenteModel)
   async updateUtente(
     @Args('id', { type: () => Int }) id: number,
     @Args('updateUtenteInput') updateUtenteInput: UpdateUtenteInput,
-  ): Promise<Utente> {
-    // <-- Corrija aqui!
+  ): Promise<utente> {
+    const prismaData = {
+      ...updateUtenteInput,
+      telemovel: updateUtenteInput.telemovel ?? undefined,
+    };
+
     return this.prisma.utente.update({
       where: { id },
-      data: updateUtenteInput,
+      data: prismaData,
     });
   }
 
   @Mutation(() => UtenteModel)
   async createUtente(
     @Args('data') createUtenteInput: CreateUtenteInput,
-  ): Promise<Utente> {
-    // <-- Corrija aqui!
+  ): Promise<utente> {
     return this.utentesService.create(createUtenteInput);
   }
 
   @Mutation(() => UtenteModel)
   async removeUtente(
     @Args('id', { type: () => Int }) id: number,
-  ): Promise<Utente> {
-    // <-- Corrija aqui!
+  ): Promise<utente> {
     try {
       const utente = await this.prisma.utente.delete({
         where: { id },

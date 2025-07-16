@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateUtenteInput } from './dto/create-utente.input';
-import { Utente } from '@prisma/client'; // Corrigido
+import { utente } from '@prisma/client'; // Corrigido
 
 @Injectable()
 export class UtentesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createUtenteInput: CreateUtenteInput): Promise<Utente> {
+  async create(createUtenteInput: CreateUtenteInput): Promise<utente> {
     // <-- Corrija aqui!
     const {
       nome,
@@ -38,12 +38,14 @@ export class UtentesService {
       data: {
         nome,
         email,
-        telemovel: telemovel ? telemovel.toString() : null, // Converte para string ou null
+        telemovel: telemovel ? telemovel.toString() : '', // Ensure telemovel is always a string
         morada,
         distrito,
         concelho,
         codigo_postal,
         pais,
+        nif: createUtenteInput.nif || '', // Default to empty string if undefined
+        sns: createUtenteInput.sns || '', // Default to empty string if undefined
       },
     });
   }

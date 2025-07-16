@@ -2,54 +2,60 @@ import { CardsData } from "./cards-data";
 import { BarComponent } from "./bar-chart";
 import { CardDoctor } from "./card-appointments-by-doctor";
 import { DateFilter } from "@/components/date-filter";
-import { Button } from "@/components/ui/button";
 import { CardService } from "./card-appointments-by-service";
-import { jsPDF } from "jspdf";  // Corrigido para jsPDF com 'j' minúsculo
 import { Header } from "@/components/header";
 import { useState } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import CreateMarkingsDialog from "../MarkingsScreen/create-markings-dialog";
+import { useQuery } from "@apollo/client";
+import { GET_COLABORADORES, GET_AGENDAMENTOS, GET_SERVICOS } from "@/graphql/queries";
 
 export default function Page() {
   const [openDialog, setOpenDialog] = useState(false);
-  const handlePrint = () => window.print();
-  const handleDownload = () => {
-    const report = new jsPDF();
-    report.text("Report", 100, 100);
-    report.save("report.pdf");
+
+  // ⬇️ Datas com estado
+  const [startDate, setStartDate] = useState<string>(new Date().toISOString().substring(0, 10));
+  const [endDate, setEndDate] = useState<string>(new Date().toISOString().substring(0, 10));
+
+  const { data: colaboradoresData } = useQuery(GET_COLABORADORES);
+  const { data: agendamentosData } = useQuery(GET_AGENDAMENTOS);
+  const { data: servicosData } = useQuery(GET_SERVICOS);
+
+  const handleFilter = () => {
+    // Aqui você pode adicionar lógica adicional, se necessário, antes de atualizar os dados
+    console.log('Filtrando dados entre:', startDate, 'e', endDate);
   };
 
   return (
     <SidebarProvider>
       <SidebarInset>
         <Header onNovaMarcacao={() => setOpenDialog(true)} />
-          <CreateMarkingsDialog open={openDialog} onOpenChange={setOpenDialog} />
+        <CreateMarkingsDialog open={openDialog} onOpenChange={setOpenDialog} />
+        
         <div className="flex flex-col items-center justify-center">
-          <DateFilter />
-          <div className="flex justify-center p-2">
-            <div className="pr-5">
-              <Button onClick={handleDownload}>Download</Button>
-            </div>
-            <div className="pl-5">
-              <Button onClick={handlePrint}>Imprimir</Button>
-            </div>
-          </div>
+           <DateFilter
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        onFilter={handleFilter}
+      />
         </div>
-        <div>
-          <div className="flex flex-1 flex-col gap-4 p-4">
-            <CardsData />
-          </div>
+
+        <div className="flex flex-col p-4 items-center justify-center">
+          <CardsData startDate={startDate} endDate={endDate} />
         </div>
+
         <div className="flex flex-1">
           <div className="p-4 w-1/2">
-            <BarComponent />
+            <BarComponent startDate={startDate} endDate={endDate} />
           </div>
           <div className="flex w-1/2 flex-line gap-4 p-4">
             <div className="w-1/2">
-              <CardDoctor />
+              <CardDoctor startDate={startDate} endDate={endDate} />
             </div>
             <div className="w-1/2">
-              <CardService />
+              <CardService startDate={startDate} endDate={endDate} />
             </div>
           </div>
         </div>

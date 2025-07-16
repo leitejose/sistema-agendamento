@@ -8,6 +8,7 @@ import { useMutation, useQuery } from "@apollo/client";
 import { CREATE_DISPONIBILIDADE, UPDATE_DISPONIBILIDADE, DELETE_DISPONIBILIDADE } from "@/graphql/mutations";
 import { GET_COLABORADORES, GET_DISPONIBILIDADES } from "@/graphql/queries";
 import CreateMarkingsDialog from "@/pages/MarkingsScreen/create-markings-dialog";
+import { DisponibilidadeTable } from "./availability-table";
 
 const diasSemana = [
   "Segunda-feira",
@@ -30,7 +31,7 @@ interface Disponibilidade {
 export default function DisponibilidadeScreen() {
   const { data: colaboradoresData, loading: loadingColaboradores } = useQuery(GET_COLABORADORES);
   const colaboradores = colaboradoresData?.colaboradores ?? [];
-  const { data: disponibilidadesData, loading: loadingDisponibilidades } = useQuery(GET_DISPONIBILIDADES);
+  const { data: disponibilidadesData } = useQuery(GET_DISPONIBILIDADES);
   const disponibilidades = disponibilidadesData?.disponibilidades ?? [];
   const [createDisponibilidade] = useMutation(CREATE_DISPONIBILIDADE, {
     refetchQueries: [{ query: GET_DISPONIBILIDADES }],
@@ -43,11 +44,13 @@ export default function DisponibilidadeScreen() {
   });
 
   const [openDialog, setOpenDialog] = useState(false); // Estado para controlar o diálogo
-  const [disponibilidade, setDisponibilidade] = useState({
+  const [disponibilidade, setDisponibilidade] = useState<{
+    colaboradorId: string;
+    dias: Array<Array<{ hora_inicio: string; hora_fim: string }>>;
+  }>({
     colaboradorId: "",
     dias: [[], [], [], [], [], [], []],
   });
-  const [disponibilidadesState, setDisponibilidades] = useState<Disponibilidade[]>([]);
   const [disponibilidadeEditando, setDisponibilidadeEditando] = useState<Disponibilidade | null>(null);
 
   // Só inicializa quando colaboradores carregarem
@@ -63,20 +66,22 @@ export default function DisponibilidadeScreen() {
   const handleColaboradorChange = (value: string) => {
     setDisponibilidade((prev) => ({
       ...prev,
-      colaboradorId: Number(value),
+      colaboradorId: value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const novasDisponibilidades = [];
+    const novasDisponibilidades: Disponibilidade[] = [];
 
     disponibilidade.dias.forEach((horarios, diaIdx) => {
       horarios.forEach((horario: any) => {
         if (horario.hora_inicio && horario.hora_fim) {
+          // Adicionar propriedade `id` ao criar novos objetos de disponibilidade
           novasDisponibilidades.push({
-            id_colaborador: disponibilidade.colaboradorId,
+            id: 0, // Valor padrão para novos registros
+            id_colaborador: Number(disponibilidade.colaboradorId),
             dia_da_semana: diaIdx,
             hora_inicio: `1970-01-01T${horario.hora_inicio.length === 5 ? horario.hora_inicio + ':00' : horario.hora_inicio}.000Z`,
             hora_fim: `1970-01-01T${horario.hora_fim.length === 5 ? horario.hora_fim + ':00' : horario.hora_fim}.000Z`,
@@ -107,8 +112,8 @@ export default function DisponibilidadeScreen() {
     e.preventDefault();
     if (!disponibilidadeEditando) return;
 
-    const diaIdx = disponibilidade.dias.findIndex(d => d.length > 0);
-    const horario = disponibilidade.dias[diaIdx][0];
+    const diaIdx = disponibilidade.dias.findIndex((d) => d.length > 0);
+    const horario = disponibilidade.dias[diaIdx][0] as { hora_inicio: string; hora_fim: string };
 
     await updateDisponibilidade({
       variables: {
@@ -118,7 +123,7 @@ export default function DisponibilidadeScreen() {
           dia_da_semana: diaIdx,
           hora_inicio: `1970-01-01T${horario.hora_inicio.length === 5 ? horario.hora_inicio + ':00' : horario.hora_inicio}.000Z`,
           hora_fim: `1970-01-01T${horario.hora_fim.length === 5 ? horario.hora_fim + ':00' : horario.hora_fim}.000Z`,
-        }
+        },
       },
     });
 
@@ -130,6 +135,33 @@ export default function DisponibilidadeScreen() {
     if (!confirmed) return;
     await deleteDisponibilidade({
       variables: { id },
+    });
+  };
+
+  // Implementar lógica para adicionar horário
+  const handleAddHorario = (diaIdx: number) => {
+    setDisponibilidade((prev) => {
+      const novosDias = [...prev.dias];
+      novosDias[diaIdx].push({ hora_inicio: "", hora_fim: "" });
+      return { ...prev, dias: novosDias };
+    });
+  };
+
+  const handleChangeHorario = (
+    diaIdx: number,
+    hIdx: number,
+    campo: string,
+    valor: string
+  ) => {
+    console.log(`Changing horario for diaIdx: ${diaIdx}, hIdx: ${hIdx}, campo: ${campo}, valor: ${valor}`);
+  };
+
+  // Implementar lógica para remover horário
+  const handleRemoveHorario = (diaIdx: number, hIdx: number) => {
+    setDisponibilidade((prev) => {
+      const novosDias = [...prev.dias];
+      novosDias[diaIdx] = novosDias[diaIdx].filter((_, index) => index !== hIdx);
+      return { ...prev, dias: novosDias };
     });
   };
 
@@ -153,9 +185,9 @@ export default function DisponibilidadeScreen() {
                 diasSemana={diasSemana}
                 onColaboradorChange={handleColaboradorChange}
                 onSubmit={disponibilidadeEditando ? handleUpdateDisponibilidade : handleSubmit}
-                onAddHorario={(diaIdx) => {}}
-                onChangeHorario={(diaIdx, hIdx, campo, valor) => {}}
-                onRemoveHorario={(diaIdx, hIdx) => {}}
+                onAddHorario={handleAddHorario}
+                onChangeHorario={handleChangeHorario}
+                onRemoveHorario={handleRemoveHorario}
                 className="mt-8"
                 disponibilidadeEditando={disponibilidadeEditando}
                 onCancelEdit={handleCancelEdit}
@@ -168,7 +200,19 @@ export default function DisponibilidadeScreen() {
               <CardTitle>Lista de Disponibilidades</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Tabela de Disponibilidades */}
+              <DisponibilidadeTable
+                disponibilidades={disponibilidades}
+                colaboradores={colaboradores}
+                diasSemana={diasSemana}
+                onEdit={(disp: Disponibilidade) => {
+                  setDisponibilidadeEditando(disp);
+                  setDisponibilidade({
+                    colaboradorId: String(disp.id_colaborador),
+                    dias: [[{ hora_inicio: disp.hora_inicio.slice(11, 16), hora_fim: disp.hora_fim.slice(11, 16) }]],
+                  });
+                }}
+                onDelete={handleDeleteDisponibilidade}
+              />
             </CardContent>
           </Card>
         </main>

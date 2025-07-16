@@ -56,6 +56,8 @@ type UtenteModel {
   distrito: String
   pais: String
   codigo_postal: String
+  nif: String
+  sns: String
 }
 
 type AuthPayload {
@@ -206,6 +208,8 @@ input UpdateUtenteInput {
   concelho: String!
   codigo_postal: String!
   pais: String!
+  nif: String
+  sns: String
 }
 
 input CreateUtenteInput {
@@ -217,6 +221,8 @@ input CreateUtenteInput {
   concelho: String!
   codigo_postal: String!
   pais: String!
+  nif: String
+  sns: String
 }
 
 input LoginInput {

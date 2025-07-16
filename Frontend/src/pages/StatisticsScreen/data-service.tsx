@@ -30,7 +30,7 @@ const DataService: React.FC<ProfileCardProps> = ({ service, amount }) => {
           minWidth: '50px',
         }}
       >
-        <h2>{amount.toLocaleString("pt-PT", { minimumFractionDigits: 2 })} €</h2>
+        <h2>{amount.toLocaleString("pt-PT")}</h2>
       </div>
     </div>
   );

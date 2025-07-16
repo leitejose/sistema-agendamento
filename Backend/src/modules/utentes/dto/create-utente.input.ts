@@ -12,7 +12,7 @@ export class CreateUtenteInput {
   @IsNotEmpty({ message: 'Email é obrigatório' })
   email: string;
 
-  @Field(() => String, { nullable: true }) // Permite valores nulos
+  @Field(() => String, { nullable: true })
   @IsNotEmpty({ message: 'Telemovel é obrigatório' })
   telemovel?: string | null;
 
@@ -35,4 +35,12 @@ export class CreateUtenteInput {
   @Field()
   @IsNotEmpty({ message: 'País é obrigatório' })
   pais: string;
+
+  @Field(() => String, { nullable: true })
+  @IsNotEmpty({ message: 'NIF é obrigatório' })
+  nif?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsNotEmpty({ message: 'SNS é obrigatório' })
+  sns?: string;
 }

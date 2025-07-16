@@ -67,6 +67,8 @@ export const GET_UTENTES = gql`
       distrito
       pais
       codigo_postal
+      nif
+      sns
     }
   }
 `;
@@ -123,7 +125,7 @@ export const GET_COLABORADOR_LOGADO = gql`
   query {
     meColaborador {
       id
-      nome
+      descricao
       email
       cargo {
         id

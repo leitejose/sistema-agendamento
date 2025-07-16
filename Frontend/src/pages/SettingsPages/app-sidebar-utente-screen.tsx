@@ -20,7 +20,7 @@ const data = {
   },
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ setSearchText, ...props }: React.ComponentProps<typeof Sidebar> & { setSearchText?: (text: string) => void }) {
   const navigate = useNavigate();
 
   return (
@@ -62,13 +62,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               Funções
             </SidebarMenuButton>
           </SidebarMenuItem>
-          {/*<SidebarMenuItem>
-            <SidebarMenuButton onClick={() => navigate("/permission-screen")}>
-              <Key />
-              Permissões
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          */}
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => navigate("/availability-screen")}>
               <Clock />

@@ -21,6 +21,7 @@ import {
 import { useQuery } from "@apollo/client";
 import { GET_CARGOS} from "@/graphql/queries";
 import { ColorPicker } from "@/components/ColorPicker";
+import { colaboradorSchema } from '@/lib/validationSchemas';
 
 function getImagemUrl(url?: string) {
   if (!url) return "";
@@ -83,7 +84,28 @@ export function ColaboradorForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!descricao || !email || !cargoId || (!initialData?.id && !senha)) {
-      setError("Preencha todos os campos obrigatórios.");
+      setError("<ul><li>Preencha todos os campos obrigatórios.</li></ul>");
+      return;
+    }
+
+    const payload: any = {
+      descricao,
+      email,
+      telemovel,
+      cargoId: Number(cargoId),
+      senha,
+      imagem_url: imagemUrl,
+      cor,
+    };
+
+    const validationResult = colaboradorSchema.safeParse(payload);
+
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.errors.map(
+        (err) => `<li>${err.path.join('.')}: ${err.message}</li>`
+      ).join('');
+      console.error(errorMessages);
+      setError(`<ul>${errorMessages}</ul>`);
       return;
     }
 
@@ -103,26 +125,16 @@ export function ColaboradorForm({
       imagem_url = null;
     }
 
-    const payload: any = {
-      descricao,
-      email,
-      telemovel,
-      cargoId: Number(cargoId),
-      senha,
-      imagem_url,
-      cor,
-    };
-    if (imagem_url) payload.imagem_url = imagem_url;
+    payload.imagem_url = imagem_url;
     if (senha) payload.senha = senha;
     if (initialData?.id) payload.id = initialData.id;
 
-    // Aguarda o resultado do submit
     const result = await onSubmit(payload);
     if (result?.success) {
       setError("");
-      if (onCancel) onCancel(); // Limpa edição e reseta formulário
+      if (onCancel) onCancel();
     } else {
-      setError(result?.message || "Erro ao salvar colaborador.");
+      setError(`<ul><li>${result?.message || "Erro ao salvar colaborador."}</li></ul>`);
     }
   };
 
@@ -221,7 +233,7 @@ export function ColaboradorForm({
               </div>
             )}
             </div>
-            {error && <span className="text-red-500 text-sm">{error }</span>}
+            {error && <div className="text-red-500 text-sm" dangerouslySetInnerHTML={{ __html: error }}></div>}
           </div>
           <CardFooter className="flex justify-center mt-4 gap-4">
   <Button type="submit">

@@ -3,10 +3,13 @@ import { Edit, Trash2 } from "lucide-react";
 
 export function DisponibilidadeTable({ disponibilidades, colaboradores, diasSemana, onEdit, onDelete }: any) {
   // Agrupa as disponibilidades por colaborador
-  const disponibilidadesPorColaborador = colaboradores.map((colab: any) => ({
-    ...colab,
-    disponibilidades: disponibilidades.filter((d: any) => d.id_colaborador === colab.id),
-  }));
+  const disponibilidadesPorColaborador = colaboradores.map((colab: any) => {
+    const colabDisponibilidades = disponibilidades.filter((d: any) => d.id_colaborador === colab.id);
+    return {
+      ...colab,
+      disponibilidades: colabDisponibilidades.length > 0 ? colabDisponibilidades : [],
+    };
+  });
 
   function formatHora(hora: any) {
     if (!hora) return "";

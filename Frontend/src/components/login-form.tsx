@@ -45,6 +45,14 @@ export const LoginForm = () => {
   const [loginMutation] = useMutation(LOGIN_COLABORADOR);
 
   const handleSubmit = async (values: { email: string; senha: string }) => {
+    const validationResult = formSchema.safeParse(values);
+
+    if (!validationResult.success) {
+      console.error(validationResult.error.errors);
+      alert("Por favor, corrija os erros antes de continuar.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Execute a mutation com os valores do formulário
@@ -76,7 +84,10 @@ export const LoginForm = () => {
         </CardHeader>
         <CardContent>
           <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-4">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="flex flex-col gap-4"
+            >
               <FormField
                 control={form.control}
                 name="email"
@@ -97,7 +108,11 @@ export const LoginForm = () => {
                   <FormItem>
                     <FormLabel>Palavra-Chave</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Digite sua senha" {...field} />
+                      <Input
+                        type="password"
+                        placeholder="Digite sua senha"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

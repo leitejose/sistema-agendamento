@@ -178,10 +178,10 @@ export class AgendamentosResolver {
         atualizado_em: new Date(),
       },
       include: {
-        utente: true,
-        colaborador: true,
-        servico: true,
-        status_agendamento: true, // ✅ CERTO
+        utente: true, // Inclui o objeto completo do utente
+        colaborador: true, // Inclui o objeto completo do colaborador
+        servico: true, // Inclui o objeto completo do serviço
+        status_agendamento: true, // Inclui o objeto completo do status
       },
     });
 

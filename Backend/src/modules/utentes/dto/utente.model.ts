@@ -29,4 +29,10 @@ export class UtenteModel {
 
   @Field({ nullable: true })
   codigo_postal?: string;
+
+  @Field({ nullable: true })
+  nif?: string;
+
+  @Field({ nullable: true })
+  sns?: string;
 }

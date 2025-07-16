@@ -32,6 +32,8 @@ export default function Page() {
     concelho: "",
     codigo_postal: "",
     pais: "Portugal",
+    nif: "",
+    sns: "",
   });
 
   const [openDialog, setOpenDialog] = useState(false); // Estado para controlar o diálogo
@@ -58,6 +60,8 @@ export default function Page() {
       concelho: utente.concelho || "",
       codigo_postal: utente.codigo_postal || "",
       pais: utente.pais || "Portugal",
+      nif: utente.nif || "",
+      sns: utente.sns || "",
     });
   };
   const handlePrintSignature = (utenteId: number) => {
@@ -127,6 +131,8 @@ export default function Page() {
           concelho: "",
           codigo_postal: "",
           pais: "Portugal",
+          nif: "",
+          sns: "",
         });
         alert("Utente criado com sucesso!");
       } catch (error) {
@@ -147,6 +153,8 @@ export default function Page() {
       concelho: "",
       codigo_postal: "",
       pais: "Portugal",
+      nif: "",
+      sns: "",
     });
   };
 
@@ -154,6 +162,16 @@ export default function Page() {
     {
       accessorKey: "id",
       header: "Nº do Utente",
+      cell: (info: { getValue: () => any }) => info.getValue(),
+    },
+    {
+      accessorKey: "nif",
+      header: "NIF",
+      cell: (info: { getValue: () => any }) => info.getValue(),
+    },
+    {
+      accessorKey: "sns",
+      header: "SNS",
       cell: (info: { getValue: () => any }) => info.getValue(),
     },
     {
