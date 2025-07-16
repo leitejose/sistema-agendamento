@@ -10,10 +10,14 @@ import CreateMarkingsDialog from "../MarkingsScreen/create-markings-dialog";
 import { useQuery } from "@apollo/client";
 import { GET_COLABORADORES, GET_AGENDAMENTOS, GET_SERVICOS } from "@/graphql/queries";
 
+// Este componente é a página principal de estatísticas do sistema de agendamento.
+// Ele utiliza vários componentes para exibir gráficos e dados filtrados.
+
 export default function Page() {
+  // Estado para controlar a abertura do diálogo de criação de marcações.
   const [openDialog, setOpenDialog] = useState(false);
 
-  // ⬇️ Datas com estado
+  // Estados para armazenar as datas de início e fim do filtro.
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().substring(0, 10));
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().substring(0, 10));
 
@@ -21,8 +25,8 @@ export default function Page() {
   const { data: agendamentosData } = useQuery(GET_AGENDAMENTOS);
   const { data: servicosData } = useQuery(GET_SERVICOS);
 
+  // Função chamada ao clicar no botão de filtro. Pode ser expandida para incluir lógica adicional.
   const handleFilter = () => {
-    // Aqui você pode adicionar lógica adicional, se necessário, antes de atualizar os dados
     console.log('Filtrando dados entre:', startDate, 'e', endDate);
   };
 

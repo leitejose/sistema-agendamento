@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 export function RoleForm({
@@ -70,8 +70,7 @@ export function RoleForm({
                 {...register("descricao")}
               />
             </div>
-            {/* Permissões desativadas para futura implementação */}
-            {/*
+           
             <div className="flex flex-col space-y-1.5">
               {permissoes.map((p) => (
                 <label key={p.id} className="flex items-center gap-2 mb-1">
@@ -84,7 +83,7 @@ export function RoleForm({
                 </label>
               ))}
             </div>
-            */}
+           
           </div>
         </form>
       </CardContent>

@@ -62,6 +62,13 @@ export function AppSidebar({ setSearchText, ...props }: React.ComponentProps<typ
               Funções
             </SidebarMenuButton>
           </SidebarMenuItem>
+     
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => navigate("/permission-screen")}>
+              <Clipboard />
+              Permissões
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => navigate("/availability-screen")}>
               <Clock />

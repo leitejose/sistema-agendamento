@@ -29,6 +29,9 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => {
   );
 };
 
+// Este componente exibe os dados filtrados em forma de cartões.
+// Ele utiliza os dados de agendamentos e serviços para calcular estatísticas como total de receita e taxa de cancelamento.
+
 // Adicionando lógica para filtrar agendamentos com base no intervalo de datas
 export function CardsData({ startDate, endDate }: { startDate: string; endDate: string }) {
   const { data: agendamentosData, loading } = useQuery(GET_AGENDAMENTOS);
@@ -41,6 +44,7 @@ export function CardsData({ startDate, endDate }: { startDate: string; endDate: 
   console.log("EndDate recebido:", endDate);
   console.log("Agendamentos recebidos:", agendamentosData?.getAgendamentos);
 
+  // Função para converter strings de data em objetos Date.
   const parseDate = (dateString: string) => {
     // Attempt to parse ISO format first
     let parsedDate = new Date(dateString);
@@ -56,6 +60,7 @@ export function CardsData({ startDate, endDate }: { startDate: string; endDate: 
     return isNaN(parsedDate.getTime()) ? null : parsedDate;
   };
 
+  // Filtra os agendamentos com base no intervalo de datas selecionado.
   const filteredAgendamentos = React.useMemo(() => {
     if (!agendamentosData?.getAgendamentos) return [];
     return agendamentosData.getAgendamentos.filter((agendamento: any) => {
@@ -73,6 +78,7 @@ export function CardsData({ startDate, endDate }: { startDate: string; endDate: 
   console.log("Filtered Agendamentos:", filteredAgendamentos);
 
   // Total em euros
+  // Calcula o total de receita com base nos serviços associados aos agendamentos filtrados.
   const totalEuros = React.useMemo(() => {
     if (!filteredAgendamentos || !servicosData?.servicos) return 0;
     return filteredAgendamentos.reduce((sum: number, agendamento: any) => {
