@@ -37,6 +37,7 @@ export default function CreateUtentesForm({
   useEffect(() => {
     if (editingUtente) {
       setFormData({
+        ...formData, // Preserve existing form data
         nome: editingUtente.nome || "",
         email: editingUtente.email || "",
         telemovel: editingUtente.telemovel || "",

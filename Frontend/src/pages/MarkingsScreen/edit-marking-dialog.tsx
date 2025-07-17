@@ -40,8 +40,6 @@ type FormData = {
   observacoes: string;
 };
 
-// ... imports (mesmos que antes)
-
 const formatDateForInput = (date: string): string => {
   const d = new Date(date);
   return d.toISOString().split("T")[0];
@@ -291,9 +289,11 @@ export default function EditMarkingsDialog({
                   {colaboradoresLoading ? (
                     <SelectItem value="" disabled>Carregando...</SelectItem>
                   ) : (
-                    colaboradoresData?.colaboradores.map((c: any) => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.descricao}</SelectItem>
-                    ))
+                    colaboradoresData?.colaboradores
+                      ?.filter((colaborador) => colaborador.cargo?.descricao === "Médico")
+                      .map((c: any) => (
+                        <SelectItem key={c.id} value={String(c.id)}>{c.descricao}</SelectItem>
+                      ))
                   )}
                 </SelectContent>
               </Select>

@@ -287,6 +287,11 @@ useEffect(() => {
   // Definir uniqueAvailableTimes para garantir valores únicos
   const uniqueAvailableTimes = Array.from(new Set(availableTimes));
 
+  // Filtrar colaboradores para mostrar apenas os com a função 'Medico'
+  const filteredColaboradores = colaboradoresData?.colaboradores?.filter(
+    (colaborador) => colaborador.cargo?.descricao === "Médico"
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl">
@@ -309,7 +314,7 @@ useEffect(() => {
                   {colaboradoresLoading ? (
                     <SelectItem value="" disabled>Carregando...</SelectItem>
                   ) : (
-                    colaboradoresData?.colaboradores.map((c: any) => (
+                    filteredColaboradores?.map((c: any) => (
                       <SelectItem key={c.id} value={c.id}>{c.descricao}</SelectItem>
                     ))
                   )}

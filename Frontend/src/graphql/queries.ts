@@ -53,6 +53,28 @@ export const GET_COLABORADORES = gql`
   }
 `;
 
+export const GET_COLABORADORES_MEDICOS = gql`
+  query GetColaboradoresMedicos {
+    colaboradores(where: { cargo: { descricao: { equals: "Medico" } } }) {
+      id
+      descricao
+      email
+      telemovel
+      imagem_url 
+      cor
+      cargo {
+        id
+        descricao
+      }
+      disponibilidades {
+        id
+        dia_da_semana
+        hora_inicio
+        hora_fim
+      }
+    }
+  }
+`;
 
 /* === UTENTES === */
 export const GET_UTENTES = gql`
